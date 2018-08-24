@@ -9,7 +9,8 @@ dependencies:
   #
   # runtime dependencies
   #
-  # ...
+  - click =6.7
+  - pyyaml =3.12
   #
   # development tools
   #
