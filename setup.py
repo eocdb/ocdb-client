@@ -25,7 +25,10 @@
 from setuptools import setup, find_packages
 
 # in alphabetical oder
-requirements = []
+requirements = [
+    "click",
+    "pyyaml",
+]
 
 packages = find_packages(exclude=["tests", "tests.*"])
 
@@ -43,4 +46,9 @@ setup(
     author='Brockmann Consult GmbH',
     packages=packages,
     install_requires=requirements,
+    entry_points={
+        'console_scripts': [
+            'eocdb-client = eocdb_client.cli:main'
+        ],
+    },
 )
