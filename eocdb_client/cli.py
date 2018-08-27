@@ -1,6 +1,8 @@
+import json
+
 import click
 
-from eocdb_client.api import Api, DefaultConfigStore
+from eocdb_client.api import Api
 
 
 @click.command(help='Set configuration parameter NAME to VALUE, '
@@ -12,10 +14,12 @@ from eocdb_client.api import Api, DefaultConfigStore
 def conf(ctx, name, value):
     if name is not None and value is not None:
         ctx.obj.set_config_param(name, value, write=True)
-    elif name is not None:
-        print(f'{name} = {ctx.obj.get_config_param(name, "")}')
     else:
-        print(ctx.obj.config)
+        if name is not None:
+            config = {name: ctx.obj.get_config_param(name)}
+        else:
+            config = ctx.obj.config
+        print(json.dumps(config, indent=2))
 
 
 @click.command(help='Query measurement records using query expression <expr>')
@@ -36,6 +40,7 @@ def add(ctx, file):
     ctx.obj.add_measurements(file)
 
 
+# noinspection PyShadowingBuiltins
 @click.command(help='Remove measurement record <id>')
 @click.argument('id', metavar='<id>')
 @click.pass_context
@@ -60,8 +65,8 @@ cli.add_command(add)
 cli.add_command(remove)
 
 
-def main():
-    cli(obj=Api(config_store=DefaultConfigStore()))
+def main(args=None):
+    cli.main(args=args, obj=Api())
 
 
 if __name__ == '__main__':
