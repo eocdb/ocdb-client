@@ -3,6 +3,7 @@ import json
 import click
 
 from eocdb_client.api import Api
+from eocdb_client.version import LICENSE_TEXT, VERSION
 
 
 @click.command(help='Set configuration parameter NAME to VALUE, '
@@ -48,15 +49,21 @@ def remove(ctx, id):
     ctx.obj.remove_measurements(id)
 
 
+# noinspection PyShadowingBuiltins
 @click.group()
+@click.version_option(VERSION)
 @click.option('--server_url', '-s', envvar='EOCDB_SERVER_URL', help='OC-DB Server URL.')
+@click.option('--license', is_flag=True, is_eager=True, help='Show the license and exit.')
 @click.pass_context
-def cli(ctx, server_url):
+def cli(ctx, server_url, license):
     """
     EUMETSAT Ocean Color In-Situ Database Client.
     """
     if server_url is not None:
         ctx.obj.server_url = server_url
+    if license:
+        click.echo(LICENSE_TEXT)
+        ctx.exit()
 
 
 cli.add_command(conf)

@@ -75,3 +75,20 @@ class ApiTest(unittest.TestCase):
         self.assertIsNotNone(api_with_defaults.config)
         self.assertTrue(api_with_defaults.server_url is None
                         or api_with_defaults.server_url is not None)
+
+
+    def test_make_url(self):
+        api = Api(config_store=MemConfigStore())
+        with self.assertRaises(ValueError) as cm:
+            api._make_url('/eocdb/api/measurements')
+        self.assertEqual('"server_url" is not configured', f'{cm.exception}')
+
+        server_url_with_trailing_slash = 'http://localhost:2385/'
+        api = Api(config_store=MemConfigStore(server_url=server_url_with_trailing_slash))
+        self.assertEqual('http://localhost:2385/eocdb/api/measurements', api._make_url('eocdb/api/measurements'))
+        self.assertEqual('http://localhost:2385/eocdb/api/measurements', api._make_url('/eocdb/api/measurements'))
+
+        server_url_without_trailing_slash = 'http://localhost:2385'
+        api = Api(config_store=MemConfigStore(server_url=server_url_without_trailing_slash))
+        self.assertEqual('http://localhost:2385/eocdb/api/measurements', api._make_url('eocdb/api/measurements'))
+        self.assertEqual('http://localhost:2385/eocdb/api/measurements', api._make_url('/eocdb/api/measurements'))

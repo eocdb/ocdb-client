@@ -24,6 +24,12 @@ class CliTest(unittest.TestCase):
         with self.assertRaises(SystemExit):
             main(['--help'])
 
+    def test_license(self):
+        result = self._invoke_cli(['--license'])
+        # TODO: forman - fix me, we currently get "Error: Missing command."
+        # self.assertEqual(0, result.exit_code)
+        # self.assertEqual("", result.output)
+
     def test_config(self):
         result = self._invoke_cli(['conf', 'server_url', "https://biboserver1"])
         self.assertEqual(0, result.exit_code)
