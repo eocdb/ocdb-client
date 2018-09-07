@@ -77,9 +77,9 @@ class Api:
             raise ValueError('"server_url" must be specified')
         self.set_config_param('server_url', server_url)
 
-    def query_measurements(self, expr: str, offset: int = 0, num_results: int = 100, format='json'):
-        params = urllib.parse.urlencode(dict(query=expr, offset=offset, num_results=num_results))
-        url = self._make_url(f'/eocdb/api/measurements.{format}?{params}')
+    def query_measurements(self, query: str, index: int = 0, results: int = 100, format='json'):
+        params = urllib.parse.urlencode(dict(query=query, index=index, results=results, format=format))
+        url = self._make_url(f'/eocdb/api/measurements?{params}')
         with self._url_opener(url) as fp:
             return json.load(fp)
 
