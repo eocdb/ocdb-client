@@ -7,9 +7,9 @@ from tests.helpers import new_url_opener_mock
 
 MOCK_SERVER_URL = "http://mock"
 MOCK_SPEC = {
-    "http://mock/eocdb/api/measurements.json?query=empty&offset=0&num_results=100":
+    "http://mock/eocdb/api/measurements?query=empty&index=0&results=100&format=json":
         'null',
-    "http://mock/eocdb/api/measurements.json?query=ernie&offset=0&num_results=100":
+    "http://mock/eocdb/api/measurements?query=ernie&index=0&results=100&format=json":
         '{'
         '  "attribute_names": ["id", "lon", "lat", "time", "Chl_A"], '
         '  "data_records": [[23, 11.4, 52.1, "2016-05-01 10:54:26", 0.7],'
@@ -52,8 +52,8 @@ class ApiTest(unittest.TestCase):
     def test_query_measurements(self):
         with self.assertRaises(urllib.error.HTTPError) as cm:
             self.api.query_measurements("a")
-        self.assertEqual('HTTP Error 400: Resource not found: '
-                         'http://mock/eocdb/api/measurements.json?query=a&offset=0&num_results=100',
+        self.assertEqual('HTTP Error 400: Resource not found:'
+                         ' http://mock/eocdb/api/measurements?query=a&index=0&results=100&format=json',
                          f'{cm.exception}')
 
         result = self.api.query_measurements("empty")
