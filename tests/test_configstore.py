@@ -25,3 +25,15 @@ class ConfigStoreTest(unittest.TestCase):
         self.assertTrue(os.path.exists(file_path))
         os.remove(file_path)
 
+        dir_path = '_test_config_store'
+        file_path = f'{dir_path}/config_store.json'
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        if os.path.exists(dir_path):
+            os.rmdir(dir_path)
+        self._test_config_store(JsonConfigStore(file_path))
+        self.assertTrue(os.path.exists(file_path))
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        if os.path.exists(dir_path):
+            os.rmdir(dir_path)
