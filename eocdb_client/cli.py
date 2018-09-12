@@ -1,55 +1,79 @@
+import json
+
 import click
 
 from eocdb_client.api import Api
+from eocdb_client.version import LICENSE_TEXT, VERSION
 
 
-@click.command(help='Set configuration parameter <name> to <value>')
-@click.argument('name', metavar='<name>')
-@click.argument('value', metavar='<value>')
+@click.command(help='Set configuration parameter NAME to VALUE, '
+                    'display configuration parameter NAME, '
+                    'or display all configuration parameters')
+@click.argument('name', required=False)
+@click.argument('value', required=False)
 @click.pass_context
-def config(ctx, name, value):
-    Api().config(name, value)
+def conf(ctx, name, value):
+    if name is not None and value is not None:
+        ctx.obj.set_config_param(name, value, write=True)
+    else:
+        if name is not None:
+            config = {name: ctx.obj.get_config_param(name)}
+        else:
+            config = ctx.obj.config
+        print(json.dumps(config, indent=2))
 
 
 @click.command(help='Query measurement records using query expression <expr>')
 @click.argument('expr', metavar='<expr>')
 @click.pass_context
 def query(ctx, expr):
-    Api(server_url=ctx.obj['server_url']).query(expr)
+    measurements = ctx.obj.query_measurements(expr)
+    if measurements:
+        print(measurements)
+    else:
+        print('No results.')
 
 
 @click.command(help='Add records of measurement data file <file>')
 @click.argument('file', metavar='<file>')
 @click.pass_context
 def add(ctx, file):
-    Api(server_url=ctx.obj['server_url']).add(file)
+    ctx.obj.add_measurements(file)
 
 
+# noinspection PyShadowingBuiltins
 @click.command(help='Remove measurement record <id>')
 @click.argument('id', metavar='<id>')
 @click.pass_context
 def remove(ctx, id):
-    Api(server_url=ctx.obj['server_url']).remove(id)
+    ctx.obj.remove_measurements(id)
 
 
+# noinspection PyShadowingBuiltins
 @click.group()
-@click.option('--server', '-s', envvar='EOCDB_SERVER_URL', help='Server URL')
+@click.version_option(VERSION)
+@click.option('--server_url', '-s', envvar='EOCDB_SERVER_URL', help='OC-DB Server URL.')
+@click.option('--license', is_flag=True, is_eager=True, help='Show the license and exit.')
 @click.pass_context
-def cli(ctx, server):
+def cli(ctx, server_url, license):
     """
     EUMETSAT Ocean Color In-Situ Database Client.
     """
-    ctx.obj['server_url'] = server
+    if server_url is not None:
+        ctx.obj.server_url = server_url
+    if license:
+        click.echo(LICENSE_TEXT)
+        ctx.exit()
 
 
-cli.add_command(config)
+cli.add_command(conf)
 cli.add_command(query)
 cli.add_command(add)
 cli.add_command(remove)
 
 
-def main():
-    cli(obj={})
+def main(args=None):
+    cli.main(args=args, obj=Api())
 
 
 if __name__ == '__main__':
