@@ -3,18 +3,18 @@ from typing import List
 
 from click.testing import CliRunner
 
-from eocdb_client.api import Api
+from eocdb_client.api.impl import _ApiImpl
 from eocdb_client.cli import cli, main
 from eocdb_client.configstore import MemConfigStore
 from tests.helpers import new_url_opener_mock
-from .test_api import MOCK_SERVER_URL, MOCK_SPEC
+from tests.api.test_impl import MOCK_SERVER_URL, MOCK_SPEC
 
 
 class CliTest(unittest.TestCase):
 
     def setUp(self):
-        self.api = Api(config_store=MemConfigStore(server_url=MOCK_SERVER_URL),
-                       url_opener=new_url_opener_mock(MOCK_SPEC))
+        self.api = _ApiImpl(config_store=MemConfigStore(server_url=MOCK_SERVER_URL),
+                            url_opener=new_url_opener_mock(MOCK_SPEC))
 
     def _invoke_cli(self, args: List[str]):
         runner = CliRunner()
@@ -58,18 +58,18 @@ class CliTest(unittest.TestCase):
                          result.output)
 
     def test_query(self):
-        result = self._invoke_cli(['query', 'a'])
+        result = self._invoke_cli(['expr', 'a'])
         self.assertEqual(-1, result.exit_code)
         self.assertEqual("",
                          result.output)
 
-        result = self._invoke_cli(['query', 'empty'])
+        result = self._invoke_cli(['expr', 'empty'])
         self.assertEqual(0, result.exit_code)
         self.assertEqual("(None, None, None)\n"
                          "No results.\n",
                          result.output)
 
-        result = self._invoke_cli(['query', 'ernie'])
+        result = self._invoke_cli(['expr', 'ernie'])
         self.assertEqual(0, result.exit_code)
         self.assertEqual("(None, None, None)\n"
                          "{'attribute_names': ['id', 'lon', 'lat', 'time', 'Chl_A'], "
