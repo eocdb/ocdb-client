@@ -2,7 +2,7 @@ import os
 import urllib.parse
 import urllib.request
 from io import IOBase
-from typing import Any, Dict, Optional, Callable
+from typing import Any, Dict, Optional, Callable, Sequence
 
 from .api import Api, Config
 from .mpf import MultiPartForm
@@ -10,6 +10,8 @@ from ..configstore import ConfigStore, JsonConfigStore
 from ..version import NAME, VERSION, DESCRIPTION
 
 USER_AGENT = f"{NAME} / {VERSION} {DESCRIPTION}"
+
+API_PATH_PREFIX = "/eocdb/api/v0.1.0"
 
 # urlopen(url, data=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
 #         *, cafile=None, capath=None, cadefault=False, context=None)
@@ -53,64 +55,95 @@ class _ApiImpl(Api):
 
     # Remote dataset access
 
-    def upload_datasets(self,
-                        archive_file: str,
-                        affil: str = None,
-                        project: str = None,
-                        cruise: str = None):
-        with open(archive_file, "rb") as zip_stream:
-            form = MultiPartForm()
-            form.add_field('affil', affil or "no_affil")
-            form.add_field('project', project or "no_project")
-            form.add_field('cruise', cruise or "no_cruise")
-            form.add_file('archive_file', os.path.basename(archive_file), zip_stream)
-            data = bytes(form)
-            request = self._make_request('/eocdb/api/v0.1.0-dev.1/store/upload', data=data, method=form.method)
-            request.add_header('Content-type', form.content_type)
-            request.add_header('Content-length', len(data))
-            with self._url_opener(request) as fp:
-                return fp.read()
+    def upload_datasets(self, store_path: str, dataset_files: Sequence[str], doc_files: Sequence[str]):
 
-    def validate_datasets(self, dataset_file: str):
+        form = MultiPartForm()
+        form.add_field('path', store_path)
+
+        input_streams = []
+        for dataset_file in dataset_files:
+            input_stream = open(dataset_file, "r")
+            form.add_file(f'dataset_files', os.path.basename(dataset_file), input_stream, mimetype="text/plain")
+            input_streams.append(input_stream)
+        for doc_file in doc_files:
+            input_stream = open(doc_file, "rb")
+            form.add_file(f'doc_files', os.path.basename(doc_file), input_stream)
+            input_streams.append(input_stream)
+
+        # print(str(form))
+        data = bytes(form)
+
+        for input_stream in input_streams:
+            input_stream.close()
+
+        request = self._make_request('/store/upload', data=data, method=form.method)
+        request.add_header('Content-type', form.content_type)
+        request.add_header('Content-length', len(data))
+        with self._url_opener(request) as fp:
+            return fp.read()
+
+    def validate_dataset(self, dataset_file: str):
         with open(dataset_file) as fp:
             dataset_json = fp.read()
-        request = self._make_request(f'/eocdb/api/v0.1.0-dev.1/datasets/validate',
-                                     method="POST",
-                                     data=dataset_json)
+        request = self._make_request('/datasets/validate', method="POST", data=dataset_json)
         with self._url_opener(request) as fp:
             return fp.read()
 
     def add_dataset(self, dataset_file: str):
         with open(dataset_file) as fp:
             dataset_json = fp.read()
-        request = self._make_request(f'/eocdb/api/v0.1.0-dev.1/datasets',
-                                     method="PUT",
-                                     data=dataset_json)
+        request = self._make_request('/datasets', method="PUT", data=dataset_json)
         with self._url_opener(request) as fp:
             return fp.read()
 
     def update_dataset(self, dataset_file: str):
         with self._url_opener(dataset_file) as fp:
             dataset_json = fp.read()
-        request = self._make_request(f'/eocdb/api/v0.1.0-dev.1/datasets',
-                                     method="POST",
-                                     data=dataset_json)
+        request = self._make_request(f'/datasets', method="POST", data=dataset_json)
         with self._url_opener(request) as fp:
             return fp.read()
 
     def delete_dataset(self, dataset_id: str) -> str:
-        request = self._make_request(f'/eocdb/api/v0.1.0-dev.1/datasets/{dataset_id}', method="DELETE")
+        request = self._make_request(f'/datasets/{dataset_id}', method="DELETE")
         with self._url_opener(request) as fp:
             return fp.read()
 
     def get_dataset(self, dataset_id: str) -> str:
-        request = self._make_request(f'/eocdb/api/v0.1.0-dev.1/datasets/{dataset_id}', method="GET")
+        request = self._make_request(f'/datasets/{dataset_id}', method="GET")
+        with self._url_opener(request) as fp:
+            return fp.read()
+
+    def get_dataset_by_name(self, dataset_path: str) -> str:
+        path_components = dataset_path.split('/')
+        try:
+            for path_component in path_components:
+                if path_component.strip() == "":
+                    raise ValueError(f"invalid dataset path: {dataset_path}")
+            affil, project, cruise, name = dataset_path.split('/')
+        except ValueError as e:
+            raise ValueError("invalid dataset path, "
+                             f"must have format affil/project/cruise/name, but was {dataset_path}") from e
+        request = self._make_request(f'/datasets/{affil}/{project}/{cruise}/{name}', method="GET")
+        with self._url_opener(request) as fp:
+            return fp.read()
+
+    def get_datasets_in_path(self, dataset_path: str) -> str:
+        path_components = dataset_path.split('/')
+        try:
+            for path_component in path_components:
+                if path_component.strip() == "":
+                    raise ValueError(f"invalid dataset path: {dataset_path}")
+            affil, project, cruise = dataset_path.split('/')
+        except ValueError as e:
+            raise ValueError(f"invalid dataset path, "
+                             f"must have format affil/project/cruise, but was {dataset_path}") from e
+        request = self._make_request(f'/datasets/{affil}/{project}/{cruise}', method="GET")
         with self._url_opener(request) as fp:
             return fp.read()
 
     def find_datasets(self, expr: str, offset: int = 1, count: int = 1000) -> str:
         params = urllib.parse.urlencode(dict(expr=expr, offset=offset, results=count))
-        request = self._make_request(f'/eocdb/api/v0.1.0-dev.1/datasets?{params}', method="GET")
+        request = self._make_request(f'/datasets?{params}', method="GET")
         with self._url_opener(request) as fp:
             return fp.read()
 
@@ -151,9 +184,9 @@ class _ApiImpl(Api):
 
     def _make_request(self, path: str, method=None, data=None, headers=None) -> urllib.request.Request:
         url = self._make_url(path)
-        request = urllib.request.Request(url, data=data, headers=headers, method=method)
+        request = urllib.request.Request(url, data=data, headers=headers or {}, method=method)
         request.add_header("User-Agent", USER_AGENT)
-        return urllib.request.Request(url, data=data, headers=headers, method=method)
+        return request
 
     def _make_url(self, path: str):
         url = self.server_url
@@ -163,7 +196,7 @@ class _ApiImpl(Api):
             url = url[0: -1]
         if not path.startswith('/'):
             path = '/' + path
-        return url + path
+        return url + API_PATH_PREFIX + path
 
     @classmethod
     def _ensure_valid_config_name(cls, name: str):

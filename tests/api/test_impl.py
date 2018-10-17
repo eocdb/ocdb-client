@@ -49,7 +49,7 @@ class ApiTest(unittest.TestCase):
         self.assertEqual(server_url, self.api.server_url)
         self.assertEqual(server_url, self.api.get_config_param('server_url'))
 
-    def test_query_measurements(self):
+    def test_find_datasets(self):
         with self.assertRaises(urllib.error.HTTPError) as cm:
             self.api.find_datasets("a")
         self.assertEqual('HTTP Error 400: Resource not found:'
@@ -64,10 +64,10 @@ class ApiTest(unittest.TestCase):
                           'data_records': [[23, 11.4, 52.1, '2016-05-01 10:54:26', 0.7],
                                            [24, 11.2, 52.2, '2016-05-01 11:12:19', 0.3]]}, result)
 
-    def test_add_measurements(self):
+    def test_add_dataset(self):
         self.api.add_dataset("a")
 
-    def test_remove_measurements(self):
+    def test_delete_dataset(self):
         self.api.delete_dataset("a")
 
     def test_api_with_defaults(self):

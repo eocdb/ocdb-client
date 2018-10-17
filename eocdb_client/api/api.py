@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Sequence
 
 UNDEFINED = object()
 
@@ -11,11 +11,11 @@ class Api(metaclass=ABCMeta):
     # Remote dataset access
 
     @abstractmethod
-    def upload_datasets(self, archive_file: str):
+    def upload_datasets(self, store_path: str, dataset_files: Sequence[str], doc_files: Sequence[str]):
         pass
 
     @abstractmethod
-    def validate_datasets(self, dataset_file: str):
+    def validate_dataset(self, dataset_file: str):
         pass
 
     @abstractmethod
@@ -36,6 +36,14 @@ class Api(metaclass=ABCMeta):
 
     @abstractmethod
     def get_dataset(self, dataset_id: str):
+        pass
+
+    @abstractmethod
+    def get_dataset_by_name(self, dataset_path: str):
+        pass
+
+    @abstractmethod
+    def get_datasets_in_path(self, dataset_path: str):
         pass
 
     # Local configuration access

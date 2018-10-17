@@ -1,4 +1,5 @@
 import json
+from typing import List, Tuple, Sequence
 
 import click
 
@@ -26,14 +27,17 @@ def conf(ctx, name, value):
 
 
 @click.command(name='upl')
-@click.argument('zipfile', metavar='<zipfile>')
-@click.option('--affil', '-a', metavar='<affiliation>', default="no_affil")
-@click.option('--project', '-p', metavar='<project>', default="no_project")
-@click.option('--cruise', '-c', metavar='<cruise>', default="no_cruise")
+@click.argument('path', metavar='<path>')
+@click.argument('dataset_files', metavar='<dataset-file> ...', nargs=-1, type=click.UNPROCESSED)
+@click.option('--doc-file', '-d', 'doc_files', metavar='<doc-file>', nargs=1,
+              multiple=True,
+              help="Labels all subsequent files as documentation files")
 @click.pass_context
-def upload_datasets(ctx, zipfile, affil=None, project=None, cruise=None):
-    """Upload multiple datasets using ZIP file <zipfile>. The file may also contain documentation files."""
-    result = ctx.obj.upload_datasets(zipfile, affil=affil, project=project, cruise=cruise)
+def upload_datasets(ctx, path: str, dataset_files: Sequence[str], doc_files: Sequence[str]):
+    """Upload multiple dataset and documentation files."""
+    if not dataset_files:
+        raise click.ClickException("At least a single <dataset-file> must be given.")
+    result = ctx.obj.upload_datasets(path, dataset_files, doc_files)
     if result:
         print(result)
 
@@ -51,11 +55,29 @@ def find_datasets(ctx, expr):
 
 
 @click.command(name="get")
-@click.argument('id', metavar='<id>')
+@click.option('--id', metavar='<id>', help='Dataset ID.')
+@click.option('--path', metavar='<path>', help='Dataset path into the store of the form affil/project/cruise/name.')
 @click.pass_context
-def get_dataset(ctx, expr):
-    """Get dataset with given <id>."""
-    dataset = ctx.obj.get_dataset(id)
+def get_dataset(ctx, id: str, path: str):
+    """Get dataset with given <id> or <path>."""
+    if (not id and not path) or (id and path):
+        raise click.ClickException("Either <id> or <path> must be given.")
+    if id:
+        dataset = ctx.obj.get_dataset(id)
+    else:
+        dataset = ctx.obj.get_dataset_by_name(path)
+    if dataset:
+        print(dataset)
+    else:
+        print('No results.')
+
+
+@click.command(name="list")
+@click.argument('path', metavar='<path>')
+@click.pass_context
+def list_datasets(ctx, path):
+    """List datasets in <path>."""
+    dataset = ctx.obj.get_datasets_in_path(path)
     if dataset:
         print(dataset)
     else:
@@ -98,7 +120,7 @@ def validate_dataset(ctx, file):
 # noinspection PyShadowingBuiltins
 @click.group()
 @click.version_option(VERSION)
-@click.option('--server_url', '-s', envvar='EOCDB_SERVER_URL', help='OC-DB Server URL.')
+@click.option('--server', 'server_url', metavar='<url>', envvar='EOCDB_SERVER_URL', help='OC-DB Server URL.')
 @click.option('--license', is_flag=True, is_eager=True, help='Show the license and exit.')
 @click.pass_context
 def cli(ctx, server_url, license):

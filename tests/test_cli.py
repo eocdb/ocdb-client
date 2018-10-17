@@ -4,10 +4,10 @@ from typing import List
 from click.testing import CliRunner
 
 from eocdb_client.api.impl import _ApiImpl
-from eocdb_client.cli import cli, main
+from eocdb_client.cli import cli
 from eocdb_client.configstore import MemConfigStore
-from tests.helpers import new_url_opener_mock
 from tests.api.test_impl import MOCK_SERVER_URL, MOCK_SPEC
+from tests.helpers import new_url_opener_mock
 
 
 class CliTest(unittest.TestCase):
@@ -19,10 +19,6 @@ class CliTest(unittest.TestCase):
     def _invoke_cli(self, args: List[str]):
         runner = CliRunner()
         return runner.invoke(cli, args, obj=self.api)
-
-    def test_run_module(self):
-        with self.assertRaises(SystemExit):
-            main(['--help'])
 
     def test_license(self):
         result = self._invoke_cli(['--license'])
@@ -57,19 +53,19 @@ class CliTest(unittest.TestCase):
                          '}\n',
                          result.output)
 
-    def test_query(self):
-        result = self._invoke_cli(['expr', 'a'])
+    def test_ds_find(self):
+        result = self._invoke_cli(['ds', 'find', 'a'])
         self.assertEqual(-1, result.exit_code)
         self.assertEqual("",
                          result.output)
 
-        result = self._invoke_cli(['expr', 'empty'])
+        result = self._invoke_cli(['ds', 'find', 'empty'])
         self.assertEqual(0, result.exit_code)
         self.assertEqual("(None, None, None)\n"
                          "No results.\n",
                          result.output)
 
-        result = self._invoke_cli(['expr', 'ernie'])
+        result = self._invoke_cli(['ds', 'find', 'ernie'])
         self.assertEqual(0, result.exit_code)
         self.assertEqual("(None, None, None)\n"
                          "{'attribute_names': ['id', 'lon', 'lat', 'time', 'Chl_A'], "
@@ -77,14 +73,14 @@ class CliTest(unittest.TestCase):
                          "[24, 11.2, 52.2, '2016-05-01 11:12:19', 0.3]]}\n",
                          result.output)
 
-    # def test_add(self):
-    #     result = self._invoke_cli(['add', 'test.xls'])
+    # def test_ds_add(self):
+    #     result = self._invoke_cli(['ds', 'add', 'test.xls'])
     #     self.assertEqual(-1, result.exit_code)
     #     self.assertEqual("",
     #                      result.output)
     #
-    # def test_remove(self):
-    #     result = self._invoke_cli(['remove', 'f612e4a0'])
+    # def test_ds_delete(self):
+    #     result = self._invoke_cli(['ds', 'del', 'f612e4a0'])
     #     self.assertEqual(-1, result.exit_code)
     #     self.assertEqual("",
     #                      result.output)
