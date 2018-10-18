@@ -1,9 +1,11 @@
 from abc import ABCMeta, abstractmethod
-from typing import Dict, Any, Optional, Sequence
+from typing import Dict, Any, Optional, Sequence, Union, List
 
 UNDEFINED = object()
 
 Config = Dict[str, Any]
+
+JsonObj = Union[Dict, List]
 
 
 class Api(metaclass=ABCMeta):
@@ -11,11 +13,11 @@ class Api(metaclass=ABCMeta):
     # Remote dataset access
 
     @abstractmethod
-    def upload_datasets(self, store_path: str, dataset_files: Sequence[str], doc_files: Sequence[str]):
+    def upload_datasets(self, store_path: str, dataset_files: Sequence[str], doc_files: Sequence[str]) -> JsonObj:
         pass
 
     @abstractmethod
-    def validate_dataset(self, dataset_file: str):
+    def validate_dataset(self, dataset_file: str) -> JsonObj:
         pass
 
     @abstractmethod
@@ -31,19 +33,19 @@ class Api(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def find_datasets(self, expr: str, offset: int = 1, count: int = 1000):
+    def find_datasets(self, expr: str, offset: int = 1, count: int = 1000) -> JsonObj:
         pass
 
     @abstractmethod
-    def get_dataset(self, dataset_id: str):
+    def get_dataset(self, dataset_id: str) -> JsonObj:
         pass
 
     @abstractmethod
-    def get_dataset_by_name(self, dataset_path: str):
+    def get_dataset_by_name(self, dataset_path: str) -> JsonObj:
         pass
 
     @abstractmethod
-    def get_datasets_in_path(self, dataset_path: str):
+    def list_datasets_in_path(self, dataset_path: str) -> JsonObj:
         pass
 
     # Local configuration access

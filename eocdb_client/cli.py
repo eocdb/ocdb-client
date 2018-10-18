@@ -1,9 +1,14 @@
 import json
-from typing import List, Tuple, Sequence
+from typing import Sequence
 
 import click
 
-from eocdb_client.version import LICENSE_TEXT, VERSION
+from .api import JsonObj
+from .version import LICENSE_TEXT, VERSION
+
+
+def _dump_json(obj: JsonObj):
+    print(json.dumps(obj, indent=2))
 
 
 @click.command()
@@ -23,7 +28,7 @@ def conf(ctx, name, value):
             config = {name: ctx.obj.get_config_param(name)}
         else:
             config = ctx.obj.config
-        print(json.dumps(config, indent=2))
+        _dump_json(config)
 
 
 @click.command(name='upl')
@@ -37,9 +42,8 @@ def upload_datasets(ctx, path: str, dataset_files: Sequence[str], doc_files: Seq
     """Upload multiple dataset and documentation files."""
     if not dataset_files:
         raise click.ClickException("At least a single <dataset-file> must be given.")
-    result = ctx.obj.upload_datasets(path, dataset_files, doc_files)
-    if result:
-        print(result)
+    validation_results = ctx.obj.upload_datasets(path, dataset_files, doc_files)
+    _dump_json(validation_results)
 
 
 @click.command(name='find')
@@ -48,10 +52,7 @@ def upload_datasets(ctx, path: str, dataset_files: Sequence[str], doc_files: Seq
 def find_datasets(ctx, expr):
     """Find datasets using query expression <expr>."""
     dataset_refs = ctx.obj.find_datasets(expr)
-    if dataset_refs:
-        print(dataset_refs)
-    else:
-        print('No results.')
+    _dump_json(dataset_refs)
 
 
 @click.command(name="get")
@@ -66,10 +67,7 @@ def get_dataset(ctx, id: str, path: str):
         dataset = ctx.obj.get_dataset(id)
     else:
         dataset = ctx.obj.get_dataset_by_name(path)
-    if dataset:
-        print(dataset)
-    else:
-        print('No results.')
+    _dump_json(dataset)
 
 
 @click.command(name="list")
@@ -77,11 +75,8 @@ def get_dataset(ctx, id: str, path: str):
 @click.pass_context
 def list_datasets(ctx, path):
     """List datasets in <path>."""
-    dataset = ctx.obj.get_datasets_in_path(path)
-    if dataset:
-        print(dataset)
-    else:
-        print('No results.')
+    dataset = ctx.obj.list_datasets_in_path(path)
+    _dump_json(dataset)
 
 
 @click.command(name="add")
@@ -114,7 +109,8 @@ def update_dataset(ctx, file):
 @click.pass_context
 def validate_dataset(ctx, file):
     """Validate dataset <file>."""
-    ctx.obj.validate_dataset(file)
+    validation_result = ctx.obj.validate_dataset(file)
+    _dump_json(validation_result)
 
 
 # noinspection PyShadowingBuiltins

@@ -1,10 +1,11 @@
+import json
 import os
 import urllib.parse
 import urllib.request
 from io import IOBase
 from typing import Any, Dict, Optional, Callable, Sequence
 
-from .api import Api, Config
+from .api import Api, Config, JsonObj
 from .mpf import MultiPartForm
 from ..configstore import ConfigStore, JsonConfigStore
 from ..version import NAME, VERSION, DESCRIPTION
@@ -15,7 +16,7 @@ API_PATH_PREFIX = "/eocdb/api/v0.1.0"
 
 # urlopen(url, data=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
 #         *, cafile=None, capath=None, cadefault=False, context=None)
-UrlOpener = Callable[[str, Dict[str, Any]], IOBase]
+UrlOpenFunction = Callable[[str, Dict[str, Any]], IOBase]
 
 
 def new_api(config_store: ConfigStore = None, server_url: str = None) -> Api:
@@ -37,25 +38,17 @@ class _ApiImpl(Api):
 
     def __init__(self,
                  config_store: ConfigStore = None,
-                 server_url: str = None,
-                 url_opener: UrlOpener = None):
-
+                 server_url: str = None):
         if config_store is None:
             config_store = _DefaultConfigStore()
         self._config_store = config_store
-
-        if url_opener is None:
-            url_opener = urllib.request.urlopen
-        self._url_opener = url_opener
-
         self._config = None
-
         if server_url is not None:
             self.server_url = server_url
 
     # Remote dataset access
 
-    def upload_datasets(self, store_path: str, dataset_files: Sequence[str], doc_files: Sequence[str]):
+    def upload_datasets(self, store_path: str, dataset_files: Sequence[str], doc_files: Sequence[str]) -> JsonObj:
 
         form = MultiPartForm()
         form.add_field('path', store_path)
@@ -79,41 +72,41 @@ class _ApiImpl(Api):
         request = self._make_request('/store/upload', data=data, method=form.method)
         request.add_header('Content-type', form.content_type)
         request.add_header('Content-length', len(data))
-        with self._url_opener(request) as fp:
-            return fp.read()
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
 
-    def validate_dataset(self, dataset_file: str):
+    def validate_dataset(self, dataset_file: str) -> JsonObj:
         with open(dataset_file) as fp:
             dataset_json = fp.read()
         request = self._make_request('/datasets/validate', method="POST", data=dataset_json)
-        with self._url_opener(request) as fp:
-            return fp.read()
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
 
     def add_dataset(self, dataset_file: str):
         with open(dataset_file) as fp:
             dataset_json = fp.read()
         request = self._make_request('/datasets', method="PUT", data=dataset_json)
-        with self._url_opener(request) as fp:
-            return fp.read()
+        with urllib.request.urlopen(request) as response:
+            return response.read()
 
     def update_dataset(self, dataset_file: str):
-        with self._url_opener(dataset_file) as fp:
+        with open(dataset_file) as fp:
             dataset_json = fp.read()
         request = self._make_request(f'/datasets', method="POST", data=dataset_json)
-        with self._url_opener(request) as fp:
-            return fp.read()
+        with urllib.request.urlopen(request) as response:
+            return response.read()
 
-    def delete_dataset(self, dataset_id: str) -> str:
+    def delete_dataset(self, dataset_id: str):
         request = self._make_request(f'/datasets/{dataset_id}', method="DELETE")
-        with self._url_opener(request) as fp:
-            return fp.read()
+        with urllib.request.urlopen(request) as response:
+            return response.read()
 
-    def get_dataset(self, dataset_id: str) -> str:
+    def get_dataset(self, dataset_id: str) -> JsonObj:
         request = self._make_request(f'/datasets/{dataset_id}', method="GET")
-        with self._url_opener(request) as fp:
-            return fp.read()
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
 
-    def get_dataset_by_name(self, dataset_path: str) -> str:
+    def get_dataset_by_name(self, dataset_path: str) -> JsonObj:
         path_components = dataset_path.split('/')
         try:
             for path_component in path_components:
@@ -124,10 +117,10 @@ class _ApiImpl(Api):
             raise ValueError("invalid dataset path, "
                              f"must have format affil/project/cruise/name, but was {dataset_path}") from e
         request = self._make_request(f'/datasets/{affil}/{project}/{cruise}/{name}', method="GET")
-        with self._url_opener(request) as fp:
-            return fp.read()
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
 
-    def get_datasets_in_path(self, dataset_path: str) -> str:
+    def list_datasets_in_path(self, dataset_path: str) -> JsonObj:
         path_components = dataset_path.split('/')
         try:
             for path_component in path_components:
@@ -138,14 +131,14 @@ class _ApiImpl(Api):
             raise ValueError(f"invalid dataset path, "
                              f"must have format affil/project/cruise, but was {dataset_path}") from e
         request = self._make_request(f'/datasets/{affil}/{project}/{cruise}', method="GET")
-        with self._url_opener(request) as fp:
-            return fp.read()
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
 
-    def find_datasets(self, expr: str, offset: int = 1, count: int = 1000) -> str:
+    def find_datasets(self, expr: str, offset: int = 1, count: int = 1000) -> JsonObj:
         params = urllib.parse.urlencode(dict(expr=expr, offset=offset, results=count))
         request = self._make_request(f'/datasets?{params}', method="GET")
-        with self._url_opener(request) as fp:
-            return fp.read()
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
 
     # Local configuration access
 
