@@ -48,7 +48,7 @@ setup(
     install_requires=requirements,
     entry_points={
         'console_scripts': [
-            'eocdb-client = eocdb_client.cli:main'
+            'eocdb-cli = eocdb_client.main:main'
         ],
     },
 )

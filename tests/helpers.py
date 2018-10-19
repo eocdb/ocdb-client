@@ -1,22 +1,32 @@
-import urllib.error
-from io import StringIO
-from typing import Dict
+import os
+import unittest
+from abc import ABCMeta, abstractmethod
+from typing import Any, Dict
+
+import httpretty
+
+from eocdb_client.api.apiimpl import ApiImpl
+from eocdb_client.configstore import MemConfigStore
 
 
-def new_url_opener_mock(url_to_result_spec: Dict[str, str]):
-    class UrlOpener:
-        def __init__(self, url: str, **kwargs):
-            self.url = url
-            self.kwargs = kwargs
+class ClientTest(unittest.TestCase, metaclass=ABCMeta):
 
-        def __enter__(self):
-            response = url_to_result_spec.get(self.url, None)
-            if response is None:
-                raise urllib.error.HTTPError(self.url, 400, f'Resource not found: {self.url}', None, None)
-            return StringIO(response)
+    def setUp(self):
+        self.api = ApiImpl(**self.api_kwargs)
+        httpretty.enable()
 
-        def __exit__(self, *args):
-            print(args)
-            pass
+    def tearDown(self):
+        httpretty.disable()
+        httpretty.reset()
 
-    return UrlOpener
+    @property
+    def api_kwargs(self) -> Dict:
+        return dict(config_store=MemConfigStore(server_url="http://test-server"))
+
+    @classmethod
+    def get_input_base_dir(cls) -> str:
+        return os.path.join(os.path.dirname(__file__), "res", "input")
+
+    @classmethod
+    def get_input_path(cls, *components):
+        return os.path.join(cls.get_input_base_dir(), *components)

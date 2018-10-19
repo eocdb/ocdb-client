@@ -1,48 +1,118 @@
-import unittest
-from typing import List
+import json
+from abc import ABCMeta
+from typing import List, Dict
 
+import httpretty
 from click.testing import CliRunner
 
-from eocdb_client.api import Api
-from eocdb_client.cli import cli, main
+from eocdb_client.cli import cli
 from eocdb_client.configstore import MemConfigStore
-from tests.helpers import new_url_opener_mock
-from .test_api import MOCK_SERVER_URL, MOCK_SPEC
+from tests.helpers import ClientTest
 
 
-class CliTest(unittest.TestCase):
+class CliTest(ClientTest, metaclass=ABCMeta):
 
-    def setUp(self):
-        self.api = Api(config_store=MemConfigStore(server_url=MOCK_SERVER_URL),
-                       url_opener=new_url_opener_mock(MOCK_SPEC))
-
-    def _invoke_cli(self, args: List[str]):
+    def invoke_cli(self, args: List[str]):
         runner = CliRunner()
         return runner.invoke(cli, args, obj=self.api)
 
-    def test_run_module(self):
-        with self.assertRaises(SystemExit):
-            main(['--help'])
+
+class CliDatasetTest(CliTest):
+
+    def test_ds_upl(self):
+        expected_response = {
+            'chl-s170604w.sub': {'issues': [], 'status': 'OK'},
+        }
+        httpretty.register_uri(httpretty.POST,
+                               "http://test-server/eocdb/api/v0.1.0/store/upload",
+                               status=200,
+                               body=json.dumps(expected_response).encode("utf-8"))
+        dataset_file = self.get_input_path("chl", "chl-s170604w.sub")
+        doc_file_1 = self.get_input_path("cal_files", "DI7125f.cal")
+        doc_file_2 = self.get_input_path("cal_files", "DI7125m.cal")
+        result = self.invoke_cli(['ds', 'upl', "BIGELOW/BALCH/gnats",
+                                  dataset_file, "-d", doc_file_1, "-d", doc_file_2])
+        self.assertEqual('{\n'
+                         '  "chl-s170604w.sub": {\n'
+                         '    "issues": [],\n'
+                         '    "status": "OK"\n'
+                         '  }\n'
+                         '}\n',
+                         result.output)
+        self.assertEqual(0, result.exit_code)
+
+    def test_ds_add(self):
+        httpretty.register_uri(httpretty.PUT,
+                               "http://test-server/eocdb/api/v0.1.0/datasets",
+                               status=200)
+        dataset_file = self.get_input_path("chl", "chl-s170604w.sub")
+        result = self.invoke_cli(['ds', 'add', dataset_file])
+        self.assertEqual("",
+                         result.output)
+        self.assertEqual(0, result.exit_code)
+
+    def test_ds_find(self):
+        expected_response = {
+            "totalCount": 2,
+            "query": {"expr": "metadata.cruise:gnats"},
+            "datasets": [
+                {"id": "1", "path": "BIGELOW/BALCH/gnats", "name": "chl-s170604w.sub"},
+                {"id": "2", "path": "BIGELOW/BALCH/gnats", "name": "chl-s170710w.sub"}
+            ]
+        }
+        httpretty.register_uri(httpretty.GET,
+                               "http://test-server/eocdb/api/v0.1.0/datasets?expr=metadata.cruise:gnats",
+                               status=200,
+                               body=json.dumps(expected_response).encode("utf-8"))
+        result = self.invoke_cli(['ds', 'find', "--expr=metadata.cruise:gnats"])
+        self.assertEqual('{\n'
+                         '  "totalCount": 2,\n'
+                         '  "query": {\n'
+                         '    "expr": "metadata.cruise:gnats"\n'
+                         '  },\n'
+                         '  "datasets": [\n'
+                         '    {\n'
+                         '      "id": "1",\n'
+                         '      "path": "BIGELOW/BALCH/gnats",\n'
+                         '      "name": "chl-s170604w.sub"\n'
+                         '    },\n'
+                         '    {\n'
+                         '      "id": "2",\n'
+                         '      "path": "BIGELOW/BALCH/gnats",\n'
+                         '      "name": "chl-s170710w.sub"\n'
+                         '    }\n'
+                         '  ]\n'
+                         '}\n',
+                         result.output)
+        self.assertEqual(0, result.exit_code)
+
+
+class CliConfigTest(CliTest):
+
+    @property
+    def api_kwargs(self) -> Dict:
+        # Overridden to NOT specify 'server_url'!
+        return dict(config_store=MemConfigStore())
 
     def test_license(self):
-        result = self._invoke_cli(['--license'])
+        result = self.invoke_cli(['--license'])
         # TODO: forman - fix me, we currently get "Error: Missing command."
         # self.assertEqual(0, result.exit_code)
         # self.assertEqual("", result.output)
 
     def test_config(self):
-        result = self._invoke_cli(['conf', 'server_url', "https://biboserver1"])
+        result = self.invoke_cli(['conf', 'server_url', "https://biboserver1"])
         self.assertEqual(0, result.exit_code)
         self.assertEqual("", result.output)
 
-        result = self._invoke_cli(['conf', 'server_url'])
+        result = self.invoke_cli(['conf', 'server_url'])
         self.assertEqual(0, result.exit_code)
         self.assertEqual('{\n'
                          '  "server_url": "https://biboserver1"\n'
                          '}\n',
                          result.output)
 
-        result = self._invoke_cli(['conf'])
+        result = self.invoke_cli(['conf'])
         self.assertEqual(0, result.exit_code)
         self.assertEqual('{\n'
                          '  "server_url": "https://biboserver1"\n'
@@ -50,41 +120,9 @@ class CliTest(unittest.TestCase):
                          result.output)
 
     def test_server_url_option(self):
-        result = self._invoke_cli(['--server_url', "https://biboserver2", "conf"])
+        result = self.invoke_cli(['--server', "https://biboserver2", "conf"])
         self.assertEqual(0, result.exit_code)
         self.assertEqual('{\n'
                          '  "server_url": "https://biboserver2"\n'
                          '}\n',
                          result.output)
-
-    def test_query(self):
-        result = self._invoke_cli(['query', 'a'])
-        self.assertEqual(-1, result.exit_code)
-        self.assertEqual("",
-                         result.output)
-
-        result = self._invoke_cli(['query', 'empty'])
-        self.assertEqual(0, result.exit_code)
-        self.assertEqual("(None, None, None)\n"
-                         "No results.\n",
-                         result.output)
-
-        result = self._invoke_cli(['query', 'ernie'])
-        self.assertEqual(0, result.exit_code)
-        self.assertEqual("(None, None, None)\n"
-                         "{'attribute_names': ['id', 'lon', 'lat', 'time', 'Chl_A'], "
-                         "'data_records': [[23, 11.4, 52.1, '2016-05-01 10:54:26', 0.7], "
-                         "[24, 11.2, 52.2, '2016-05-01 11:12:19', 0.3]]}\n",
-                         result.output)
-
-    # def test_add(self):
-    #     result = self._invoke_cli(['add', 'test.xls'])
-    #     self.assertEqual(-1, result.exit_code)
-    #     self.assertEqual("",
-    #                      result.output)
-    #
-    # def test_remove(self):
-    #     result = self._invoke_cli(['remove', 'f612e4a0'])
-    #     self.assertEqual(-1, result.exit_code)
-    #     self.assertEqual("",
-    #                      result.output)
