@@ -2,8 +2,7 @@ import json
 import os
 import urllib.parse
 import urllib.request
-from io import IOBase
-from typing import Any, Dict, Optional, Callable, Sequence
+from typing import Any, Optional, Sequence
 
 from .api import Api, Config, JsonObj
 from .mpf import MultiPartForm
@@ -14,27 +13,25 @@ USER_AGENT = f"{NAME} / {VERSION} {DESCRIPTION}"
 
 API_PATH_PREFIX = "/eocdb/api/v0.1.0"
 
-# urlopen(url, data=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
-#         *, cafile=None, capath=None, cadefault=False, context=None)
-UrlOpenFunction = Callable[[str, Dict[str, Any]], IOBase]
+USER_DIR = os.path.expanduser(os.path.join('~', '.eocdb'))
+DEFAULT_CONFIG_FILE_NAME = 'eocdb-client.json'
+DEFAULT_CONFIG_FILE = os.path.join(USER_DIR, DEFAULT_CONFIG_FILE_NAME)
+
+VALID_CONFIG_PARAM_NAMES = {'server_url'}
 
 
 def new_api(config_store: ConfigStore = None, server_url: str = None) -> Api:
-    """Create a new API instance."""
-    return _ApiImpl(config_store=config_store, server_url=server_url)
+    """Factory that creates a new API instance."""
+    return ApiImpl(config_store=config_store, server_url=server_url)
 
 
 class _DefaultConfigStore(JsonConfigStore):
-    USER_DIR = os.path.expanduser(os.path.join('~', '.eocdb'))
-    CONFIG_FILE_NAME = 'eocdb-client.json'
-    CONFIG_FILE = os.path.join(USER_DIR, CONFIG_FILE_NAME)
 
     def __init__(self):
-        super().__init__(_DefaultConfigStore.CONFIG_FILE)
+        super().__init__(DEFAULT_CONFIG_FILE)
 
 
-class _ApiImpl(Api):
-    VALID_CONFIG_PARAM_NAMES = {'server_url'}
+class ApiImpl(Api):
 
     def __init__(self,
                  config_store: ConfigStore = None,
@@ -53,21 +50,13 @@ class _ApiImpl(Api):
         form = MultiPartForm()
         form.add_field('path', store_path)
 
-        input_streams = []
         for dataset_file in dataset_files:
-            input_stream = open(dataset_file, "r")
-            form.add_file(f'dataset_files', os.path.basename(dataset_file), input_stream, mimetype="text/plain")
-            input_streams.append(input_stream)
+            form.add_file(f'dataset_files', os.path.basename(dataset_file), dataset_file, mime_type="text/plain")
         for doc_file in doc_files:
-            input_stream = open(doc_file, "rb")
-            form.add_file(f'doc_files', os.path.basename(doc_file), input_stream)
-            input_streams.append(input_stream)
+            form.add_file(f'doc_files', os.path.basename(doc_file), doc_file)
 
         # print(str(form))
         data = bytes(form)
-
-        for input_stream in input_streams:
-            input_stream.close()
 
         request = self._make_request('/store/upload', data=data, method=form.method)
         request.add_header('Content-type', form.content_type)
@@ -78,21 +67,21 @@ class _ApiImpl(Api):
     def validate_dataset(self, dataset_file: str) -> JsonObj:
         with open(dataset_file) as fp:
             dataset_json = fp.read()
-        request = self._make_request('/datasets/validate', method="POST", data=dataset_json)
+        request = self._make_request('/datasets/validate', method="POST", data=dataset_json.encode("utf-8"))
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
     def add_dataset(self, dataset_file: str):
         with open(dataset_file) as fp:
             dataset_json = fp.read()
-        request = self._make_request('/datasets', method="PUT", data=dataset_json)
+        request = self._make_request('/datasets', method="PUT", data=dataset_json.encode("utf-8"))
         with urllib.request.urlopen(request) as response:
             return response.read()
 
     def update_dataset(self, dataset_file: str):
         with open(dataset_file) as fp:
             dataset_json = fp.read()
-        request = self._make_request(f'/datasets', method="POST", data=dataset_json)
+        request = self._make_request(f'/datasets', method="POST", data=dataset_json.encode("utf-8"))
         with urllib.request.urlopen(request) as response:
             return response.read()
 
@@ -108,14 +97,16 @@ class _ApiImpl(Api):
 
     def get_dataset_by_name(self, dataset_path: str) -> JsonObj:
         path_components = dataset_path.split('/')
-        try:
-            for path_component in path_components:
-                if path_component.strip() == "":
-                    raise ValueError(f"invalid dataset path: {dataset_path}")
-            affil, project, cruise, name = dataset_path.split('/')
-        except ValueError as e:
+        if len(path_components) < 4:
             raise ValueError("invalid dataset path, "
-                             f"must have format affil/project/cruise/name, but was {dataset_path}") from e
+                             f"must have format affil/project/cruise/name, but was {dataset_path}")
+        for path_component in path_components:
+            if path_component.strip() == "":
+                raise ValueError(f"invalid dataset path: {dataset_path}")
+        affil = path_components[0]
+        project = path_components[1]
+        cruise = path_components[2]
+        name = "/".join(path_components[3:])
         request = self._make_request(f'/datasets/{affil}/{project}/{cruise}/{name}', method="GET")
         with urllib.request.urlopen(request) as response:
             return json.load(response)
@@ -134,8 +125,9 @@ class _ApiImpl(Api):
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def find_datasets(self, expr: str, offset: int = 1, count: int = 1000) -> JsonObj:
-        params = urllib.parse.urlencode(dict(expr=expr, offset=offset, results=count))
+    def find_datasets(self, **kwargs) -> JsonObj:
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+        params = urllib.parse.urlencode(kwargs)
         request = self._make_request(f'/datasets?{params}', method="GET")
         with urllib.request.urlopen(request) as response:
             return json.load(response)
@@ -193,7 +185,7 @@ class _ApiImpl(Api):
 
     @classmethod
     def _ensure_valid_config_name(cls, name: str):
-        if name not in cls.VALID_CONFIG_PARAM_NAMES:
+        if name not in VALID_CONFIG_PARAM_NAMES:
             raise ValueError(f'unknown configuration parameter "{name}"')
 
     def _ensure_config_initialized(self):

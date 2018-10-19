@@ -14,39 +14,42 @@ class Api(metaclass=ABCMeta):
 
     @abstractmethod
     def upload_datasets(self, store_path: str, dataset_files: Sequence[str], doc_files: Sequence[str]) -> JsonObj:
-        pass
+        """Upload the given dataset and doc files and return a validation report for each dataset file."""
 
     @abstractmethod
     def validate_dataset(self, dataset_file: str) -> JsonObj:
-        pass
+        """Validate the given dataset and return a validation report."""
 
     @abstractmethod
     def add_dataset(self, dataset_file: str):
-        pass
+        """Add a dataset."""
 
     @abstractmethod
     def update_dataset(self, dataset_file: str):
-        pass
+        """Update a dataset."""
 
     @abstractmethod
     def delete_dataset(self, dataset_file: str):
-        pass
+        """Delete a dataset."""
 
     @abstractmethod
-    def find_datasets(self, expr: str, offset: int = 1, count: int = 1000) -> JsonObj:
-        pass
+    def find_datasets(self,
+                      expr: str = None,
+                      offset: int = 1,
+                      count: int = 1000) -> JsonObj:
+        """Find datasets."""
 
     @abstractmethod
     def get_dataset(self, dataset_id: str) -> JsonObj:
-        pass
+        """Get dataset by ID."""
 
     @abstractmethod
     def get_dataset_by_name(self, dataset_path: str) -> JsonObj:
-        pass
+        """Get dataset by path and name."""
 
     @abstractmethod
     def list_datasets_in_path(self, dataset_path: str) -> JsonObj:
-        pass
+        """List datasets in path."""
 
     # Local configuration access
 

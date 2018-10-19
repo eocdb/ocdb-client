@@ -47,26 +47,33 @@ def upload_datasets(ctx, path: str, dataset_files: Sequence[str], doc_files: Seq
 
 
 @click.command(name='find')
-@click.argument('expr', metavar='<expr>')
+@click.option('--expr', metavar='<expr>',
+              help="Query expression")
+@click.option('--offset', metavar='<offset>', type=int, default=1,
+              help="Results offset. Offset of first result is 1.")
+@click.option('--count', metavar='<count>', type=int, default=1000,
+              help="Maximum number of results.")
 @click.pass_context
-def find_datasets(ctx, expr):
+def find_datasets(ctx, expr, offset, count):
     """Find datasets using query expression <expr>."""
-    dataset_refs = ctx.obj.find_datasets(expr)
+    dataset_refs = ctx.obj.find_datasets(expr=expr, offset=offset, count=count)
     _dump_json(dataset_refs)
 
 
 @click.command(name="get")
-@click.option('--id', metavar='<id>', help='Dataset ID.')
-@click.option('--path', metavar='<path>', help='Dataset path into the store of the form affil/project/cruise/name.')
+@click.option('--id', 'dataset_id', metavar='<id>',
+              help='Dataset ID.')
+@click.option('--path', '-p', 'dataset_path', metavar='<path>',
+              help='Dataset path of the form affil/project/cruise/name.')
 @click.pass_context
-def get_dataset(ctx, id: str, path: str):
+def get_dataset(ctx, dataset_id: str, dataset_path: str):
     """Get dataset with given <id> or <path>."""
-    if (not id and not path) or (id and path):
+    if (not dataset_id and not dataset_path) or (dataset_id and dataset_path):
         raise click.ClickException("Either <id> or <path> must be given.")
-    if id:
-        dataset = ctx.obj.get_dataset(id)
+    if dataset_id:
+        dataset = ctx.obj.get_dataset(dataset_id)
     else:
-        dataset = ctx.obj.get_dataset_by_name(path)
+        dataset = ctx.obj.get_dataset_by_name(dataset_path)
     _dump_json(dataset)
 
 
