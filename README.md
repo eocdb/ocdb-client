@@ -15,6 +15,9 @@ EUMETSAT Ocean Colour Database (OCDB) Python Client
 * TBD: API functions that receive entire datasets should be flexible what concerns the type of dataset 
   parameter: str = file path, dict = JSON datasets, else file handle to read from. We may miss a format 
   indication to separate SB and JSON files.
+* TBD: validate_dataset() and add_dataset() ops must accept SB format in request bodies 
+* TBC: the upload_store_files() CLI is currently very clumpsy. We must provide multiple 
+  "-d" options to pass multiple doc files. 
 
 ## API Usage
 
