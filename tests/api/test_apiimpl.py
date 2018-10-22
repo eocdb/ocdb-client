@@ -14,6 +14,7 @@ class ApiTest(ClientTest, metaclass=ABCMeta):
 
 
 class DatasetsApiTest(ApiTest):
+
     def test_upload_store_files(self):
         expected_response = {
             'chl-s170604w.sub': {'issues': [], 'status': 'OK'},
@@ -135,6 +136,15 @@ class DatasetsApiTest(ApiTest):
         with self.assertRaises(urllib.request.HTTPError):
             self.api.get_dataset_by_name(dataset_path="BIGELOW/BALCH/gnats/chl/chl-s170604w.sub")
 
+        with self.assertRaises(ValueError) as cm:
+            self.api.get_dataset_by_name(dataset_path="BIGELOW/gnats/chl-s170604w.sub")
+        self.assertEqual("Invalid dataset path, must have format affil/project/cruise/name,"
+                         " but was BIGELOW/gnats/chl-s170604w.sub", f"{cm.exception}")
+
+        with self.assertRaises(ValueError) as cm:
+            self.api.get_dataset_by_name(dataset_path="BIGELOW/BALCH//chl/chl-s170604w.sub")
+        self.assertEqual("Invalid dataset path: BIGELOW/BALCH//chl/chl-s170604w.sub", f"{cm.exception}")
+
     def test_list_datasets_in_path(self):
         expected_response = [
             {
@@ -166,6 +176,12 @@ class DatasetsApiTest(ApiTest):
                                status=404)
         with self.assertRaises(urllib.request.HTTPError):
             self.api.list_datasets_in_path(dataset_path="IGELOW/ELCH/gnitz")
+
+        with self.assertRaises(ValueError):
+            self.api.list_datasets_in_path(dataset_path="BIGELOW/BALCH/gnats/gnark")
+
+        with self.assertRaises(ValueError):
+            self.api.list_datasets_in_path(dataset_path="BIGELOW/BALCH")
 
 
 class ConfigApiTest(ApiTest):
@@ -208,3 +224,14 @@ class ConfigApiTest(ApiTest):
         api = ApiImpl(config_store=MemConfigStore(server_url=server_url_without_trailing_slash))
         self.assertEqual('http://localhost:2385/eocdb/api/v0.1.0/datasets', api._make_url('datasets'))
         self.assertEqual('http://localhost:2385/eocdb/api/v0.1.0/datasets', api._make_url('/datasets'))
+
+
+class ApiImplTest(ApiTest):
+    def test_constr(self):
+        api = ApiImpl()
+        self.assertIsNotNone(api.config)
+        self.assertIsNotNone(api.server_url)
+
+        api = ApiImpl(server_url="https://bibosrv", config_store=MemConfigStore(server_url="https://bertsrv"))
+        self.assertIsNotNone(api.config)
+        self.assertEqual("https://bibosrv", api.server_url)

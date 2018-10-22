@@ -96,13 +96,10 @@ class ApiImpl(Api):
             return json.load(response)
 
     def get_dataset_by_name(self, dataset_path: str) -> JsonObj:
-        path_components = dataset_path.split('/')
+        path_components = _split_dataset_path(dataset_path)
         if len(path_components) < 4:
-            raise ValueError("invalid dataset path, "
+            raise ValueError("Invalid dataset path, "
                              f"must have format affil/project/cruise/name, but was {dataset_path}")
-        for path_component in path_components:
-            if path_component.strip() == "":
-                raise ValueError(f"invalid dataset path: {dataset_path}")
         affil = path_components[0]
         project = path_components[1]
         cruise = path_components[2]
@@ -112,14 +109,10 @@ class ApiImpl(Api):
             return json.load(response)
 
     def list_datasets_in_path(self, dataset_path: str) -> JsonObj:
-        path_components = dataset_path.split('/')
         try:
-            for path_component in path_components:
-                if path_component.strip() == "":
-                    raise ValueError(f"invalid dataset path: {dataset_path}")
-            affil, project, cruise = dataset_path.split('/')
+            affil, project, cruise = _split_dataset_path(dataset_path)
         except ValueError as e:
-            raise ValueError(f"invalid dataset path, "
+            raise ValueError(f"Invalid dataset path, "
                              f"must have format affil/project/cruise, but was {dataset_path}") from e
         request = self._make_request(f'/datasets/{affil}/{project}/{cruise}', method="GET")
         with urllib.request.urlopen(request) as response:
@@ -194,3 +187,11 @@ class ApiImpl(Api):
             for name in config:
                 self._ensure_valid_config_name(name)
             self._config = config
+
+
+def _split_dataset_path(dataset_path: str) -> Sequence[str]:
+    path_components = dataset_path.split('/')
+    for path_component in path_components:
+        if path_component.strip() == "":
+            raise ValueError(f"Invalid dataset path: {dataset_path}")
+    return path_components
