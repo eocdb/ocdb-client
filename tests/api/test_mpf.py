@@ -22,9 +22,9 @@ class MultiPartFormTest(unittest.TestCase):
                       file_obj)
 
         binary_form = bytes(form)
-        self.assertEqual(4856, len(binary_form))
+        self.assertEqual(4795, len(binary_form))
 
         text_form = str(form)
-        self.assertEqual(4856, len(text_form))
+        self.assertEqual(4795, len(text_form))
         self.assertTrue(text_form.startswith("--bibo\r\n"))
         self.assertTrue(text_form.endswith("--bibo--\r\n"))
