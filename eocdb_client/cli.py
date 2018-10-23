@@ -4,7 +4,7 @@ from typing import Sequence
 import click
 
 from .api import JsonObj
-from .version import LICENSE_TEXT, VERSION
+from .version import VERSION, LICENSE_TEXT
 
 
 def _dump_json(obj: JsonObj):
@@ -33,7 +33,7 @@ def conf(ctx, name, value):
 
 @click.command(name='upl')
 @click.argument('path', metavar='<path>')
-@click.argument('dataset_files', metavar='<dataset-file> ...', nargs=-1, type=click.UNPROCESSED)
+@click.argument('dataset_files', metavar='<dataset-file> ...', nargs=-1)
 @click.option('--doc-file', '-d', 'doc_files', metavar='<doc-file>', nargs=1,
               multiple=True,
               help="Labels all subsequent files as documentation files")
@@ -120,21 +120,25 @@ def validate_dataset(ctx, file):
     _dump_json(validation_result)
 
 
+@click.command(name="lic")
+def show_license():
+    """
+    Show license and exit.
+    """
+    click.echo(LICENSE_TEXT)
+
+
 # noinspection PyShadowingBuiltins
 @click.group()
 @click.version_option(VERSION)
 @click.option('--server', 'server_url', metavar='<url>', envvar='EOCDB_SERVER_URL', help='OC-DB Server URL.')
-@click.option('--license', is_flag=True, is_eager=True, help='Show the license and exit.')
 @click.pass_context
-def cli(ctx, server_url, license):
+def cli(ctx, server_url):
     """
     EUMETSAT Ocean Color In-Situ Database Client.
     """
     if server_url is not None:
         ctx.obj.server_url = server_url
-    if license:
-        click.echo(LICENSE_TEXT)
-        ctx.exit()
 
 
 @click.group()
@@ -142,7 +146,6 @@ def ds():
     """
     Dataset management.
     """
-    pass
 
 
 @click.group()
@@ -150,7 +153,6 @@ def df():
     """
     Documentation files management.
     """
-    pass
 
 
 @click.group()
@@ -158,13 +160,13 @@ def user():
     """
     User management.
     """
-    pass
 
 
 cli.add_command(conf)
 cli.add_command(ds)
 cli.add_command(df)
 cli.add_command(user)
+cli.add_command(show_license)
 
 ds.add_command(upload_datasets)
 ds.add_command(find_datasets)
@@ -173,3 +175,4 @@ ds.add_command(add_dataset)
 ds.add_command(delete_dataset)
 ds.add_command(update_dataset)
 ds.add_command(validate_dataset)
+ds.add_command(list_datasets)
