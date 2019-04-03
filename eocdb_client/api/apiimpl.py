@@ -48,17 +48,18 @@ class ApiImpl(Api):
     def upload_datasets(self, store_path: str, dataset_files: Sequence[str], doc_files: Sequence[str]) -> JsonObj:
 
         form = MultiPartForm()
-        form.add_field('path', store_path)
+        form.add_field('path', 'helgetest')
+        form.add_field('submissionid', 'helgetest')
 
         for dataset_file in dataset_files:
-            form.add_file(f'dataset_files', os.path.basename(dataset_file), dataset_file, mime_type="text/plain")
+            form.add_file(f'datasetfiles', os.path.basename(dataset_file), dataset_file, mime_type="text/plain")
         for doc_file in doc_files:
-            form.add_file(f'doc_files', os.path.basename(doc_file), doc_file)
+            form.add_file(f'docfiles', os.path.basename(doc_file), doc_file)
 
         # print(str(form))
         data = bytes(form)
 
-        request = self._make_request('/store/upload', data=data, method=form.method)
+        request = self._make_request('/store/upload/submission', data=data, method=form.method)
         request.add_header('Content-type', form.content_type)
         request.add_header('Content-length', len(data))
         with urllib.request.urlopen(request) as response:
