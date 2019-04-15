@@ -22,7 +22,7 @@ VALID_CONFIG_PARAM_NAMES = {'server_url'}
 
 def new_api(config_store: ConfigStore = None, server_url: str = None) -> Api:
     """Factory that creates a new API instance."""
-    return ApiImpl(config_store=config_store, server_url=server_url)
+    return OCDBApi(config_store=config_store, server_url=server_url)
 
 
 class _DefaultConfigStore(JsonConfigStore):
@@ -31,7 +31,7 @@ class _DefaultConfigStore(JsonConfigStore):
         super().__init__(DEFAULT_CONFIG_FILE)
 
 
-class ApiImpl(Api):
+class OCDBApi(Api):
 
     def __init__(self,
                  config_store: ConfigStore = None,
@@ -123,6 +123,62 @@ class ApiImpl(Api):
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
         params = urllib.parse.urlencode(kwargs)
         request = self._make_request(f'/datasets?{params}', method="GET")
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+
+    def get_submission(self, **kwargs) -> JsonObj:
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+        params = urllib.parse.urlencode(kwargs)
+        request = self._make_request(f'/submission?{params}', method="GET")
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+
+    def get_submissions_for_user(self, **kwargs) -> JsonObj:
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+        params = urllib.parse.urlencode(kwargs)
+        request = self._make_request(f'/submission?{params}', method="GET")
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+
+    def get_submissions(self, **kwargs) -> JsonObj:
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+        params = urllib.parse.urlencode(kwargs)
+        request = self._make_request(f'/submission?{params}', method="GET")
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+
+    def delete_submission(self, **kwargs) -> JsonObj:
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+        params = urllib.parse.urlencode(kwargs)
+        request = self._make_request(f'/submission?{params}', method="GET")
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+
+    def get_submissions_for_submission(self, **kwargs) -> JsonObj:
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+        params = urllib.parse.urlencode(kwargs)
+        request = self._make_request(f'/submission?{params}', method="GET")
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+
+    def get_submission_file(self, **kwargs) -> JsonObj:
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+        params = urllib.parse.urlencode(kwargs)
+        request = self._make_request(f'/submission?{params}', method="GET")
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+
+    def upload_submission_file(self, **kwargs) -> JsonObj:
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+        params = urllib.parse.urlencode(kwargs)
+        request = self._make_request(f'/submission?{params}', method="GET")
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+
+    def delete_submission_file(self, **kwargs) -> JsonObj:
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+        params = urllib.parse.urlencode(kwargs)
+        request = self._make_request(f'/submission?{params}', method="GET")
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 

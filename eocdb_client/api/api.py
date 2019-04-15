@@ -51,6 +51,58 @@ class Api(metaclass=ABCMeta):
     def list_datasets_in_path(self, dataset_path: str) -> JsonObj:
         """List datasets in path."""
 
+    # Submission Management
+
+    @abstractmethod
+    def get_submission(self, **kwargs) -> JsonObj:
+        """Get submission"""
+
+    @abstractmethod
+    def get_submissions_for_user(self, **kwargs) -> JsonObj:
+        """Get submissions for user"""
+
+    @abstractmethod
+    def get_submissions(self, **kwargs) -> JsonObj:
+        """Get all submissions"""
+
+    @abstractmethod
+    def delete_submission(self, **kwargs) -> JsonObj:
+        """Delete submission"""
+
+    @abstractmethod
+    def get_submission_files_for_submission(self, **kwargs) -> JsonObj:
+        """Get submission files for a submission"""
+
+    @abstractmethod
+    def get_submission_file(self, **kwargs) -> JsonObj:
+        """Get submission file by submission id and index"""
+
+    @abstractmethod
+    def upload_submission_file(self, **kwargs) -> JsonObj:
+        """Re-upload a single suibmission file"""
+
+    @abstractmethod
+    def delete_submission_file(self, **kwargs) -> JsonObj:
+        """Delete s submission file by sbmission Id and index"""
+
+    # User management
+
+    @abstractmethod
+    def add_user(self) -> JsonObj:
+        """Add a new user"""
+
+    @abstractmethod
+    def delete_user(self) -> JsonObj:
+        """Delete existing user"""
+
+    @abstractmethod
+    def update_user(self) -> JsonObj:
+        """Update user Info"""
+
+    @abstractmethod
+    def get_user(self) -> JsonObj:
+        """Get user info by user ID"""
+
     # Local configuration access
 
     @property

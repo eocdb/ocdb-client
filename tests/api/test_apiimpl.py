@@ -4,7 +4,7 @@ from abc import ABCMeta
 
 import httpretty
 
-from eocdb_client.api.apiimpl import ApiImpl
+from eocdb_client.api.OCDBApi import OCDBApi
 from eocdb_client.configstore import MemConfigStore
 from tests.helpers import ClientTest
 
@@ -204,34 +204,34 @@ class ConfigApiTest(ApiTest):
         self.assertEqual(server_url, self.api.get_config_param('server_url'))
 
     def test_api_with_defaults(self):
-        api_with_defaults = ApiImpl()
+        api_with_defaults = OCDBApi()
         self.assertIsNotNone(api_with_defaults.config)
         self.assertTrue(api_with_defaults.server_url is None
                         or api_with_defaults.server_url is not None)
 
     def test_make_url(self):
-        api = ApiImpl(config_store=MemConfigStore())
+        api = OCDBApi(config_store=MemConfigStore())
         with self.assertRaises(ValueError) as cm:
             api._make_url('/datasets')
         self.assertEqual('"server_url" is not configured', f'{cm.exception}')
 
         server_url_with_trailing_slash = 'http://localhost:2385/'
-        api = ApiImpl(config_store=MemConfigStore(server_url=server_url_with_trailing_slash))
+        api = OCDBApi(config_store=MemConfigStore(server_url=server_url_with_trailing_slash))
         self.assertEqual('http://localhost:2385/eocdb/api/v0.1.0/datasets', api._make_url('datasets'))
         self.assertEqual('http://localhost:2385/eocdb/api/v0.1.0/datasets', api._make_url('/datasets'))
 
         server_url_without_trailing_slash = 'http://localhost:2385'
-        api = ApiImpl(config_store=MemConfigStore(server_url=server_url_without_trailing_slash))
+        api = OCDBApi(config_store=MemConfigStore(server_url=server_url_without_trailing_slash))
         self.assertEqual('http://localhost:2385/eocdb/api/v0.1.0/datasets', api._make_url('datasets'))
         self.assertEqual('http://localhost:2385/eocdb/api/v0.1.0/datasets', api._make_url('/datasets'))
 
 
 class ApiImplTest(ApiTest):
     def test_constr(self):
-        api = ApiImpl()
+        api = OCDBApi()
         self.assertIsNotNone(api.config)
         self.assertIsNotNone(api.server_url)
 
-        api = ApiImpl(server_url="https://bibosrv", config_store=MemConfigStore(server_url="https://bertsrv"))
+        api = OCDBApi(server_url="https://bibosrv", config_store=MemConfigStore(server_url="https://bertsrv"))
         self.assertIsNotNone(api.config)
         self.assertEqual("https://bibosrv", api.server_url)

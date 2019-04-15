@@ -5,14 +5,14 @@ from typing import Any, Dict
 
 import httpretty
 
-from eocdb_client.api.apiimpl import ApiImpl
+from eocdb_client.api.OCDBApi import OCDBApi
 from eocdb_client.configstore import MemConfigStore
 
 
 class ClientTest(unittest.TestCase, metaclass=ABCMeta):
 
     def setUp(self):
-        self.api = ApiImpl(**self.api_kwargs)
+        self.api = OCDBApi(**self.api_kwargs)
         httpretty.enable()
 
     def tearDown(self):
