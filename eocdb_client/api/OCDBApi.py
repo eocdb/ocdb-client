@@ -1,8 +1,11 @@
 import json
 import os
+import shutil
 import urllib.parse
 import urllib.request
+import zipfile
 from typing import Any, Optional, Sequence
+
 
 from .api import Api, Config, JsonObj
 from .mpf import MultiPartForm
@@ -45,11 +48,15 @@ class OCDBApi(Api):
 
     # Remote dataset access
 
-    def upload_datasets(self, store_path: str, dataset_files: Sequence[str], doc_files: Sequence[str]) -> JsonObj:
+    def upload_submission(self, store_path: str, dataset_files: Sequence[str], doc_files: Sequence[str], path: str,
+                          submission_id: str, publication_date: str, allow_publication: bool) -> JsonObj:
 
         form = MultiPartForm()
-        form.add_field('path', 'helgetest')
-        form.add_field('submissionid', 'helgetest')
+        form.add_field('path', path)
+        form.add_field('submissionid', submission_id)
+        form.add_field('publicationdate', publication_date)
+        form.add_field('allowpublication', str(allow_publication))
+        form.add_field('userid', str(1))
 
         for dataset_file in dataset_files:
             form.add_file(f'datasetfiles', os.path.basename(dataset_file), dataset_file, mime_type="text/plain")
@@ -91,6 +98,16 @@ class OCDBApi(Api):
         with urllib.request.urlopen(request) as response:
             return response.read()
 
+    def delete_datasets_by_submission(self, submission_id: str):
+        request = self._make_request(f'/datasets/submission/{submission_id}', method="DELETE")
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+
+    def get_datasets_by_submission(self, submission_id: str):
+        request = self._make_request(f'/datasets/submission/{submission_id}', method="GET")
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+
     def get_dataset(self, dataset_id: str) -> JsonObj:
         request = self._make_request(f'/datasets/{dataset_id}', method="GET")
         with urllib.request.urlopen(request) as response:
@@ -126,52 +143,47 @@ class OCDBApi(Api):
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def get_submission(self, **kwargs) -> JsonObj:
-        kwargs = {k: v for k, v in kwargs.items() if v is not None}
-        params = urllib.parse.urlencode(kwargs)
-        request = self._make_request(f'/submission?{params}', method="GET")
+    def get_submission(self, submission_id: str) -> JsonObj:
+        request = self._make_request(f'/store/upload/submission/{submission_id}', method="GET")
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def get_submissions_for_user(self, **kwargs) -> JsonObj:
-        kwargs = {k: v for k, v in kwargs.items() if v is not None}
-        params = urllib.parse.urlencode(kwargs)
-        request = self._make_request(f'/submission?{params}', method="GET")
+    def get_submissions_for_user(self, user_id: int) -> JsonObj:
+        request = self._make_request(f'/store/upload/user/{str(user_id)}', method="GET")
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def get_submissions(self, **kwargs) -> JsonObj:
-        kwargs = {k: v for k, v in kwargs.items() if v is not None}
-        params = urllib.parse.urlencode(kwargs)
-        request = self._make_request(f'/submission?{params}', method="GET")
+    def update_submission_status(self, submission_id: str, status: str) -> JsonObj:
+        data = {'status': status, 'publication_date': '2020-01-01'}
+        data = json.dumps(data).encode('utf-8')
+
+        request = self._make_request(f'/store/status/submission/{submission_id}', data=data, method="PUT")
+        request.add_header('Content-Type', 'application/json')
+
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def delete_submission(self, **kwargs) -> JsonObj:
-        kwargs = {k: v for k, v in kwargs.items() if v is not None}
-        params = urllib.parse.urlencode(kwargs)
-        request = self._make_request(f'/submission?{params}', method="GET")
+    def delete_submission(self, submission_id: str) -> JsonObj:
+        request = self._make_request(f'/store/upload/submission/{submission_id}', method="DELETE")
+
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def get_submissions_for_submission(self, **kwargs) -> JsonObj:
-        kwargs = {k: v for k, v in kwargs.items() if v is not None}
-        params = urllib.parse.urlencode(kwargs)
-        request = self._make_request(f'/submission?{params}', method="GET")
-        with urllib.request.urlopen(request) as response:
-            return json.load(response)
+    def download_submission_file(self, submission_id: str, index: int, out_fn: Optional[str]) -> str:
+        request = self._make_request(f'/store/download/submissionfile/{submission_id}/{index}', method="GET")
 
-    def get_submission_file(self, **kwargs) -> JsonObj:
-        kwargs = {k: v for k, v in kwargs.items() if v is not None}
-        params = urllib.parse.urlencode(kwargs)
-        request = self._make_request(f'/submission?{params}', method="GET")
-        with urllib.request.urlopen(request) as response:
-            return json.load(response)
+        if not out_fn:
+            out_fn = 'download.zip'
 
-    def upload_submission_file(self, **kwargs) -> JsonObj:
-        kwargs = {k: v for k, v in kwargs.items() if v is not None}
-        params = urllib.parse.urlencode(kwargs)
-        request = self._make_request(f'/submission?{params}', method="GET")
+        with urllib.request.urlopen(request) as response, open(out_fn, 'wb') as out_file:
+            shutil.copyfileobj(response, out_file)
+            out_file.close()
+            with zipfile.ZipFile(out_fn) as zf:
+                zf.extractall()
+        return f'{submission_id}/{index} downloaded to {out_fn}'
+
+    def get_submission_file(self, submission_id: str, index: int) -> JsonObj:
+        request = self._make_request(f'/store/upload/submissionfile/{submission_id}/{index}', method="GET")
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
@@ -179,6 +191,59 @@ class OCDBApi(Api):
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
         params = urllib.parse.urlencode(kwargs)
         request = self._make_request(f'/submission?{params}', method="GET")
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+
+    def upload_submission_file(self, submission_id: str, index: int, dataset_files: Sequence[str],
+                               doc_files: Sequence[str]) -> JsonObj:
+        form = MultiPartForm()
+
+        for dataset_file in dataset_files:
+            form.add_file(f'datasetfiles', os.path.basename(dataset_file), dataset_file, mime_type="text/plain")
+        for doc_file in doc_files:
+            form.add_file(f'docfiles', os.path.basename(doc_file), doc_file)
+
+        data = bytes(form)
+
+        request = self._make_request(f'/store/upload/submissionfile/{submission_id}/{index}', data=data, method="PUT")
+        request.add_header('Content-type', form.content_type)
+        request.add_header('Content-length', len(data))
+
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+
+    def add_user(self, username: str, first_name: str, last_name: str, email: str, phone: str,
+                 roles: Sequence[str]) -> JsonObj:
+        data = {
+            'username': username,
+            'first_name': first_name,
+            'last_name': last_name,
+            'email': email,
+            'phone': phone,
+            'roles': roles
+        }
+        data = json.dumps(data).encode('utf-8')
+
+        request = self._make_request(f'/users', data=data, method="POST")
+        request.add_header('Content-Type', 'application/json')
+
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+
+    def delete_user(self) -> JsonObj:
+        pass
+
+    def update_user(self) -> JsonObj:
+        pass
+
+    def get_user(self) -> JsonObj:
+        pass
+
+    def login_user(self, username: str, password: str) -> JsonObj:
+        data = {'username': username, 'password': password}
+        data = json.dumps(data).encode('utf-8')
+
+        request = self._make_request(f'/users/login', data=data, method="POST")
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 

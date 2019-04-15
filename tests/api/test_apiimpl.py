@@ -29,7 +29,7 @@ class DatasetsApiTest(ApiTest):
         doc_file_paths = [self.get_input_path("cal_files", "ac90194.060328"),
                           self.get_input_path("cal_files", "DI7125f.cal"),
                           self.get_input_path("cal_files", "DI7125m.cal")]
-        response = self.api.upload_datasets("BIGELOW/BALCH/gnats", dataset_paths, doc_file_paths)
+        response = self.api.upload_submission("BIGELOW/BALCH/gnats", dataset_paths, doc_file_paths)
         self.assertIsInstance(response, dict)
         self.assertEqual(expected_response, response)
 
@@ -38,7 +38,7 @@ class DatasetsApiTest(ApiTest):
                                "http://test-server/eocdb/api/v0.1.0/store/upload",
                                status=400)
         with self.assertRaises(urllib.request.HTTPError) as cm:
-            self.api.upload_datasets("BIGELOW/BALCH/gnats", dataset_paths, doc_file_paths)
+            self.api.upload_submission("BIGELOW/BALCH/gnats", dataset_paths, doc_file_paths)
         self.assertEqual(400, cm.exception.code)
         self.assertEqual("Bad Request", cm.exception.reason)
 
