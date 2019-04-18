@@ -244,24 +244,42 @@ def cli(ctx, server_url):
 @click.option('--last-name', '-ln', metavar='<last_name>', help='Last Name')
 @click.option('--email', '-em', metavar='<email>', help='Email')
 @click.option('--phone', '-ph', metavar='<phone>', help='Phone')
+@click.option('--password', '-p', metavar='<password>', help='Password')
 @click.option('--roles', '-r', metavar='<roles>', help='Roles',  multiple=True)
 @click.pass_context
 def add_user(ctx, username: str, first_name: str, last_name: str, email: str, phone: str,
-             roles: Sequence[str]):
+             password: str, roles: Sequence[str]):
     """Get submission file --submission_id <submission_id> --index <index>."""
-    result = ctx.obj.add_user(username, first_name, last_name, email, phone, roles)
+    result = ctx.obj.add_user(username, first_name, last_name, email, phone, password, roles)
     _dump_json(result)
 
 
 @click.command(name="login")
-@click.option('--username', '-u', metavar='<user-name>', help='User Name')
-@click.option('--password', '-p', metavar='<password>', help='Password')
 @click.pass_context
-def login_user(ctx, username: str, password: str):
+def login_user(ctx):
     """Get submission file --submission_id <submission_id> --index <index>."""
+    username = input("User name:")
+    password = input("Password:")
     result = ctx.obj.login_user(username, password)
     _dump_json(result)
 
+
+@click.command(name="get")
+@click.option('--user-id', '-i', metavar='<user-id>', help='User ID')
+@click.pass_context
+def get_user(ctx, user_id: str):
+    """Get submission file --submission_id <submission_id> --index <index>."""
+    result = ctx.obj.get_user(user_id)
+    _dump_json(result)
+
+
+@click.command(name="delete")
+@click.option('--user-id', '-i', metavar='<user-id>', help='User ID')
+@click.pass_context
+def delete_user(ctx, user_id: str):
+    """Get submission file --submission_id <submission_id> --index <index>."""
+    result = ctx.obj.delete_user(user_id)
+    _dump_json(result)
 
 
 @click.group()
@@ -318,5 +336,7 @@ sbm.add_command(get_submission_file)
 sbm.add_command(download_submission_file)
 sbm.add_command(upload_submission_file)
 
+user.add_command(get_user)
 user.add_command(add_user)
+user.add_command(delete_user)
 user.add_command(login_user)

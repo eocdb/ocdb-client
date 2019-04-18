@@ -213,14 +213,15 @@ class OCDBApi(Api):
             return json.load(response)
 
     def add_user(self, username: str, first_name: str, last_name: str, email: str, phone: str,
-                 roles: Sequence[str]) -> JsonObj:
+                 password: str, roles: Sequence[str]) -> JsonObj:
         data = {
-            'username': username,
+            'name': username,
             'first_name': first_name,
             'last_name': last_name,
             'email': email,
             'phone': phone,
-            'roles': roles
+            'roles': roles,
+            'password': password,
         }
         data = json.dumps(data).encode('utf-8')
 
@@ -230,14 +231,18 @@ class OCDBApi(Api):
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def delete_user(self) -> JsonObj:
-        pass
+    def delete_user(self, user_id: str) -> JsonObj:
+        request = self._make_request(f'/users/{user_id}', method="DELETE")
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
 
     def update_user(self) -> JsonObj:
         pass
 
-    def get_user(self) -> JsonObj:
-        pass
+    def get_user(self, user_id: str) -> JsonObj:
+        request = self._make_request(f'/users/{user_id}', method="GET")
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
 
     def login_user(self, username: str, password: str) -> JsonObj:
         data = {'username': username, 'password': password}

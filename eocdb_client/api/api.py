@@ -110,7 +110,7 @@ class Api(metaclass=ABCMeta):
         """Update user Info"""
 
     @abstractmethod
-    def get_user(self) -> JsonObj:
+    def get_user(self, user_id: str) -> JsonObj:
         """Get user info by user ID"""
 
     @abstractmethod
