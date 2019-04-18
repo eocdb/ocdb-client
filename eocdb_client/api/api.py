@@ -102,7 +102,7 @@ class Api(metaclass=ABCMeta):
         """Add a new user"""
 
     @abstractmethod
-    def delete_user(self) -> JsonObj:
+    def delete_user(self, user_id: str) -> JsonObj:
         """Delete existing user"""
 
     @abstractmethod
