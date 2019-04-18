@@ -98,7 +98,7 @@ class Api(metaclass=ABCMeta):
 
     @abstractmethod
     def add_user(self, username: str, first_name: str, last_name: str, email: str, phone: str,
-                 roles: Sequence[str]) -> JsonObj:
+                 password: str, roles: Sequence[str]) -> JsonObj:
         """Add a new user"""
 
     @abstractmethod
