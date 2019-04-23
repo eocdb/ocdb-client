@@ -266,11 +266,11 @@ def update_user(ctx, username: str, key: str, value: str):
 
 
 @click.command(name="login")
-@click.option('--username', '-u', metavar='<user-name>', help='User Name')
-@click.option('--password', '-p', metavar='<password>', help='Password')
 @click.pass_context
-def login_user(ctx, username: str, password: str):
+def login_user(ctx):
     """Get submission file --submission_id <submission_id> --index <index>."""
+    username = input("User name:")
+    password = input("Password:")
     result = ctx.obj.login_user(username, password)
     _dump_json(result)
 
