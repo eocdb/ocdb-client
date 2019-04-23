@@ -240,16 +240,28 @@ def cli(ctx, server_url):
 
 @click.command(name="add")
 @click.option('--username', '-u', metavar='<user-name>', help='User Name')
+@click.option('--password', '-p', metavar='<password>', help='Password')
 @click.option('--first-name', '-fn', metavar='<first_name>', help='First Name')
 @click.option('--last-name', '-ln', metavar='<last_name>', help='Last Name')
 @click.option('--email', '-em', metavar='<email>', help='Email')
 @click.option('--phone', '-ph', metavar='<phone>', help='Phone')
 @click.option('--roles', '-r', metavar='<roles>', help='Roles',  multiple=True)
 @click.pass_context
-def add_user(ctx, username: str, first_name: str, last_name: str, email: str, phone: str,
+def add_user(ctx, username: str,  password: str, first_name: str, last_name: str, email: str, phone: str,
              roles: Sequence[str]):
     """Get submission file --submission_id <submission_id> --index <index>."""
-    result = ctx.obj.add_user(username, first_name, last_name, email, phone, roles)
+    result = ctx.obj.add_user(username,  password, first_name, last_name, email, phone, roles)
+    _dump_json(result)
+
+
+@click.command(name="update")
+@click.option('--username', '-u', metavar='<user-name>', help='User Name')
+@click.option('--key', '-k', metavar='<key>', help='Key (e.g. name)')
+@click.option('--value', '-v', metavar='<value>', help='Value for the field')
+@click.pass_context
+def update_user(ctx, username: str, key: str, value: str):
+    """Get submission file --submission_id <submission_id> --index <index>."""
+    result = ctx.obj.update_user(username, key, value)
     _dump_json(result)
 
 
@@ -262,6 +274,23 @@ def login_user(ctx, username: str, password: str):
     result = ctx.obj.login_user(username, password)
     _dump_json(result)
 
+
+@click.command(name="get")
+@click.option('--username', '-u', metavar='<user-name>', help='User Name')
+@click.pass_context
+def get_user(ctx, username: str):
+    """Get submission file --submission_id <submission_id> --index <index>."""
+    result = ctx.obj.get_user(username)
+    _dump_json(result)
+
+
+@click.command(name="delete")
+@click.option('--username', '-u', metavar='<user-name>', help='User Name')
+@click.pass_context
+def delete_user(ctx, username: str):
+    """Delete User --username <name>."""
+    result = ctx.obj.delete_user(username)
+    _dump_json(result)
 
 
 @click.group()
@@ -319,4 +348,7 @@ sbm.add_command(download_submission_file)
 sbm.add_command(upload_submission_file)
 
 user.add_command(add_user)
+user.add_command(update_user)
+user.add_command(get_user)
+user.add_command(delete_user)
 user.add_command(login_user)

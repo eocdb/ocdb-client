@@ -9,6 +9,9 @@ from eocdb_client.configstore import MemConfigStore
 from tests.helpers import ClientTest
 
 
+TEST_URL = "http://10.2.0.57:4000/"
+
+
 class ApiTest(ClientTest, metaclass=ABCMeta):
     pass
 
@@ -21,7 +24,7 @@ class DatasetsApiTest(ApiTest):
             'chl-s170710w.sub': {'issues': [], 'status': 'OK'}
         }
         httpretty.register_uri(httpretty.POST,
-                               "http://test-server/eocdb/api/v0.1.0/store/upload",
+                               TEST_URL + "eocdb/api/v0.1.0/store/upload",
                                status=200,
                                body=json.dumps(expected_response).encode("utf-8"))
         dataset_paths = [self.get_input_path("chl", "chl-s170604w.sub"),
@@ -29,13 +32,15 @@ class DatasetsApiTest(ApiTest):
         doc_file_paths = [self.get_input_path("cal_files", "ac90194.060328"),
                           self.get_input_path("cal_files", "DI7125f.cal"),
                           self.get_input_path("cal_files", "DI7125m.cal")]
-        response = self.api.upload_submission("BIGELOW/BALCH/gnats", dataset_paths, doc_file_paths)
+
+        response = self.api.upload_submission("BIGELOW/BALCH/gnats", dataset_paths, doc_file_paths, 'test', 'helge',
+                                              '2020-01-01', False)
         self.assertIsInstance(response, dict)
         self.assertEqual(expected_response, response)
 
         # Force failure
         httpretty.register_uri(httpretty.POST,
-                               "http://test-server/eocdb/api/v0.1.0/store/upload",
+                               TEST_URL + "eocdb/api/v0.1.0/store/upload",
                                status=400)
         with self.assertRaises(urllib.request.HTTPError) as cm:
             self.api.upload_submission("BIGELOW/BALCH/gnats", dataset_paths, doc_file_paths)
@@ -52,7 +57,7 @@ class DatasetsApiTest(ApiTest):
             ]
         }
         httpretty.register_uri(httpretty.GET,
-                               "http://test-server/eocdb/api/v0.1.0/datasets?expr=metadata.cruise:gnats",
+                               TEST_URL + "eocdb/api/v0.1.0/datasets?expr=metadata.cruise:gnats",
                                status=200,
                                body=json.dumps(expected_response).encode("utf-8"))
         response = self.api.find_datasets(expr="metadata.cruise:gnats")
@@ -61,31 +66,31 @@ class DatasetsApiTest(ApiTest):
 
     def test_validate_dataset(self):
         httpretty.register_uri(httpretty.POST,
-                               "http://test-server/eocdb/api/v0.1.0/datasets/validate",
+                               TEST_URL + "eocdb/api/v0.1.0/datasets/validate",
                                status=200)
         self.api.validate_dataset(self.get_input_path("chl", "chl-s170604w.sub"))
 
     def test_add_datasets(self):
         httpretty.register_uri(httpretty.PUT,
-                               "http://test-server/eocdb/api/v0.1.0/datasets",
+                               TEST_URL + "eocdb/api/v0.1.0/datasets",
                                status=200)
         self.api.add_dataset(self.get_input_path("chl", "chl-s170604w.sub"))
 
     def test_update_datasets(self):
         httpretty.register_uri(httpretty.POST,
-                               "http://test-server/eocdb/api/v0.1.0/datasets",
+                               TEST_URL + "eocdb/api/v0.1.0/datasets",
                                status=200)
         self.api.update_dataset(self.get_input_path("chl", "chl-s170604w.sub"))
 
     def test_delete_datasets(self):
         httpretty.register_uri(httpretty.DELETE,
-                               "http://test-server/eocdb/api/v0.1.0/datasets/3",
+                               TEST_URL + "eocdb/api/v0.1.0/datasets/3",
                                status=200)
         self.api.delete_dataset(dataset_id="3")
 
         # Force failure
         httpretty.register_uri(httpretty.DELETE,
-                               "http://test-server/eocdb/api/v0.1.0/datasets/4",
+                               TEST_URL + "eocdb/api/v0.1.0/datasets/4",
                                status=404)
         with self.assertRaises(urllib.request.HTTPError):
             self.api.delete_dataset(dataset_id="4")
@@ -98,7 +103,7 @@ class DatasetsApiTest(ApiTest):
             "records": [[]]
         }
         httpretty.register_uri(httpretty.GET,
-                               "http://test-server/eocdb/api/v0.1.0/datasets/245",
+                               TEST_URL + "eocdb/api/v0.1.0/datasets/245",
                                status=200,
                                body=json.dumps(expected_response).encode("utf-8"))
         response = self.api.get_dataset(dataset_id="245")
@@ -107,7 +112,7 @@ class DatasetsApiTest(ApiTest):
 
         # Force failure
         httpretty.register_uri(httpretty.GET,
-                               "http://test-server/eocdb/api/v0.1.0/datasets/246",
+                               TEST_URL + "eocdb/api/v0.1.0/datasets/246",
                                status=404)
         with self.assertRaises(urllib.request.HTTPError):
             self.api.get_dataset(dataset_id="246")
@@ -120,7 +125,7 @@ class DatasetsApiTest(ApiTest):
             "records": [[]]
         }
         httpretty.register_uri(httpretty.GET,
-                               "http://test-server/eocdb/api/v0.1.0"
+                               TEST_URL + "eocdb/api/v0.1.0"
                                "/datasets/BIGELOW/BALCH/gnats/chl/chl-s170604w.sub",
                                status=200,
                                body=json.dumps(expected_response).encode("utf-8"))
@@ -130,7 +135,7 @@ class DatasetsApiTest(ApiTest):
 
         # Force failure
         httpretty.register_uri(httpretty.GET,
-                               "http://test-server/eocdb/api/v0.1.0"
+                               TEST_URL + "eocdb/api/v0.1.0"
                                "/datasets/BIGELOW/BALCH/gnats/chl/chl-s170604w.sub",
                                status=404)
         with self.assertRaises(urllib.request.HTTPError):
@@ -161,7 +166,7 @@ class DatasetsApiTest(ApiTest):
             }
         ]
         httpretty.register_uri(httpretty.GET,
-                               "http://test-server/eocdb/api/v0.1.0"
+                               TEST_URL + "eocdb/api/v0.1.0"
                                "/datasets/BIGELOW/BALCH/gnats",
                                status=200,
                                body=json.dumps(expected_response).encode("utf-8"))
@@ -171,7 +176,7 @@ class DatasetsApiTest(ApiTest):
 
         # Force failure
         httpretty.register_uri(httpretty.GET,
-                               "http://test-server/eocdb/api/v0.1.0"
+                               TEST_URL + "eocdb/api/v0.1.0"
                                "/datasets/IGELOW/ELCH/gnitz",
                                status=404)
         with self.assertRaises(urllib.request.HTTPError):

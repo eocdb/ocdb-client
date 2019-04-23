@@ -97,20 +97,20 @@ class Api(metaclass=ABCMeta):
     # User management
 
     @abstractmethod
-    def add_user(self, username: str, first_name: str, last_name: str, email: str, phone: str,
+    def add_user(self, username: str,  password: str, first_name: str, last_name: str, email: str, phone: str,
                  roles: Sequence[str]) -> JsonObj:
         """Add a new user"""
 
     @abstractmethod
-    def delete_user(self) -> JsonObj:
+    def delete_user(self, name: str) -> JsonObj:
         """Delete existing user"""
 
     @abstractmethod
-    def update_user(self) -> JsonObj:
+    def update_user(self, name: str, key: str, value: str) -> JsonObj:
         """Update user Info"""
 
     @abstractmethod
-    def get_user(self) -> JsonObj:
+    def get_user(self, name: str) -> JsonObj:
         """Get user info by user ID"""
 
     @abstractmethod

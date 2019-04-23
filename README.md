@@ -2,28 +2,77 @@
 
 EUMETSAT Ocean Colour Database (OCDB) Python Client
 
-## Notes 
 
-* TBD: Names
-  * `path` --> `collection` (= `{affil}/{project}/{cruise}`)
-  * in `find_datasets`: `offset` --> `index`, so we can have both options `--index`, `-i` in CLI
-* dataset identification can either be done by id or by path plus name. 
-* a dataset name may be a path, e.g. a valid name may be `chl/chl-s170604w.sub`.
-* the separator character used in dataset paths and names must be a forward slash (`/`) 
-  as used on Unix OS and in URLs, *not* a backslash as used on Windows OS.
-* TBD: Retrieval of documentation files also done in association with datasets?
-* TBD: API functions that receive entire datasets should be flexible what concerns the type of dataset 
-  parameter: str = file path, dict = JSON datasets, else file handle to read from. We may miss a format 
-  indication to separate SB and JSON files.
-* TBD: validate_dataset() and add_dataset() ops must accept SB format in request bodies 
-* TBC: the upload_store_files() CLI is currently very clumpsy. We must provide multiple 
-  "-d" options to pass multiple doc files. 
+## Installation
+
+```bash
+git clone https://github.com/bcdev/eocdb-client
+cd eocdb-client
+conda env create
+source activate eocdb-client-dev
+python setup.py develop
+```
 
 ## API Usage
 
 
 ## CLI Usage
 
+__Config__:
+
+In order to access the database you need to configure the client.
+The default address is ```http://194.76.223.169```.
+
+```bash
+
+eocdb-cli conf server_url http://194.76.223.169
+
+```
+
+__Search Database__:
+
+```bash
+
+eocdb-cli ds find --expr "investigators: *Colleen*"
+
+```
+
+__Add User__:
+
+```bash
+
+eocdb-cli user add -u admin -p admin -fn Submit -ln Submit -em jj -ph hh -r admin
+
+```
+
+__Login User__:
+
+
+```bash
+
+eocdb-cli user login
+
+```
+
+__Delete User__:
+
+
+```bash
+
+eocdb-cli user delete
+
+```
+
+
+__Submission__:
+
+__Delete Submission__:
+
+__Download Submission__:
+
+__Download Submission File__:
+
+__Upload Submission File__:
 
 
 ## Development
