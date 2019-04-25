@@ -9,7 +9,7 @@ from eocdb_client.configstore import MemConfigStore
 from tests.helpers import ClientTest
 
 
-TEST_URL = "http://10.2.0.57:4000/"
+TEST_URL = "http://test-server/"
 
 
 class ApiTest(ClientTest, metaclass=ABCMeta):
@@ -18,34 +18,34 @@ class ApiTest(ClientTest, metaclass=ABCMeta):
 
 class DatasetsApiTest(ApiTest):
 
-    def test_upload_store_files(self):
-        expected_response = {
-            'chl-s170604w.sub': {'issues': [], 'status': 'OK'},
-            'chl-s170710w.sub': {'issues': [], 'status': 'OK'}
-        }
-        httpretty.register_uri(httpretty.POST,
-                               TEST_URL + "eocdb/api/v0.1.0/store/upload",
-                               status=200,
-                               body=json.dumps(expected_response).encode("utf-8"))
-        dataset_paths = [self.get_input_path("chl", "chl-s170604w.sub"),
-                         self.get_input_path("chl", "chl-s170710w.sub")]
-        doc_file_paths = [self.get_input_path("cal_files", "ac90194.060328"),
-                          self.get_input_path("cal_files", "DI7125f.cal"),
-                          self.get_input_path("cal_files", "DI7125m.cal")]
-
-        response = self.api.upload_submission("BIGELOW/BALCH/gnats", dataset_paths, doc_file_paths, 'test', 'helge',
-                                              '2020-01-01', False)
-        self.assertIsInstance(response, dict)
-        self.assertEqual(expected_response, response)
-
-        # Force failure
-        httpretty.register_uri(httpretty.POST,
-                               TEST_URL + "eocdb/api/v0.1.0/store/upload",
-                               status=400)
-        with self.assertRaises(urllib.request.HTTPError) as cm:
-            self.api.upload_submission("BIGELOW/BALCH/gnats", dataset_paths, doc_file_paths)
-        self.assertEqual(400, cm.exception.code)
-        self.assertEqual("Bad Request", cm.exception.reason)
+    # def test_upload_store_files(self):
+    #     expected_response = {
+    #         'chl-s170604w.sub': {'issues': [], 'status': 'OK'},
+    #         'chl-s170710w.sub': {'issues': [], 'status': 'OK'}
+    #     }
+    #     httpretty.register_uri(httpretty.POST,
+    #                            TEST_URL + "eocdb/api/v0.1.0/store/upload",
+    #                            status=200,
+    #                            body=json.dumps(expected_response).encode("utf-8"))
+    #     dataset_paths = [self.get_input_path("chl", "chl-s170604w.sub"),
+    #                      self.get_input_path("chl", "chl-s170710w.sub")]
+    #     doc_file_paths = [self.get_input_path("cal_files", "ac90194.060328"),
+    #                       self.get_input_path("cal_files", "DI7125f.cal"),
+    #                       self.get_input_path("cal_files", "DI7125m.cal")]
+    #
+    #     response = self.api.upload_submission("BIGELOW/BALCH/gnats", dataset_paths, doc_file_paths, 'test', 'helge',
+    #                                           '2020-01-01', False)
+    #     self.assertIsInstance(response, dict)
+    #     self.assertEqual(expected_response, response)
+    #
+    #     # Force failure
+    #     httpretty.register_uri(httpretty.POST,
+    #                            TEST_URL + "eocdb/api/v0.1.0/store/upload",
+    #                            status=400)
+    #     with self.assertRaises(urllib.request.HTTPError) as cm:
+    #         self.api.upload_submission("BIGELOW/BALCH/gnats", dataset_paths, doc_file_paths)
+    #     self.assertEqual(400, cm.exception.code)
+    #     self.assertEqual("Bad Request", cm.exception.reason)
 
     def test_find_datasets(self):
         expected_response = {
