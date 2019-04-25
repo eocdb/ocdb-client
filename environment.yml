@@ -5,12 +5,13 @@ channels:
   - defaults
 
 dependencies:
-  - python =3.6*
+  - python =3.7*
   #
   # production dependencies
   #
   - click =7.0
   - pyyaml =3.12
+  - ipython
   #
   # development dependencies
   #

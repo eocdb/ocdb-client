@@ -13,7 +13,8 @@ class Api(metaclass=ABCMeta):
     # Remote dataset access
 
     @abstractmethod
-    def upload_datasets(self, store_path: str, dataset_files: Sequence[str], doc_files: Sequence[str]) -> JsonObj:
+    def upload_submission(self, store_path: str, dataset_files: Sequence[str], doc_files: Sequence[str], path: str,
+                          submission_id: str, publication_date: str, allow_publication: bool) -> JsonObj:
         """Upload the given dataset and doc files and return a validation report for each dataset file."""
 
     @abstractmethod
@@ -33,6 +34,14 @@ class Api(metaclass=ABCMeta):
         """Delete a dataset."""
 
     @abstractmethod
+    def get_datasets_by_submission(self, submission_id: str):
+        """Get datasets by submission ID"""
+
+    @abstractmethod
+    def delete_datasets_by_submission(self, submission_id: str):
+        """Delete datasets by submission ID"""
+
+    @abstractmethod
     def find_datasets(self,
                       expr: str = None,
                       offset: int = 1,
@@ -50,6 +59,63 @@ class Api(metaclass=ABCMeta):
     @abstractmethod
     def list_datasets_in_path(self, dataset_path: str) -> JsonObj:
         """List datasets in path."""
+
+    # Submission Management
+
+    @abstractmethod
+    def get_submission(self, submission_id: str) -> JsonObj:
+        """Get submission"""
+
+    @abstractmethod
+    def update_submission_status(self, submission_id: str, status: str) -> JsonObj:
+        """Get submission"""
+
+    @abstractmethod
+    def get_submissions_for_user(self, user_id: int) -> JsonObj:
+        """Get submissions for user"""
+
+    @abstractmethod
+    def delete_submission(self, submission_id: str) -> JsonObj:
+        """Delete submission"""
+
+    @abstractmethod
+    def download_submission_file(self, submission_id: str, index: int, out_fn: Optional[str]) -> JsonObj:
+        """Download submission file by submission id and index"""
+
+    @abstractmethod
+    def get_submission_file(self, submission_id: str, index: int) -> JsonObj:
+        """Get submission file by submission id and index"""
+
+    @abstractmethod
+    def upload_submission_file(self, **kwargs) -> JsonObj:
+        """Re-upload a single suibmission file"""
+
+    @abstractmethod
+    def delete_submission_file(self, **kwargs) -> JsonObj:
+        """Delete s submission file by sbmission Id and index"""
+
+    # User management
+
+    @abstractmethod
+    def add_user(self, username: str,  password: str, first_name: str, last_name: str, email: str, phone: str,
+                 roles: Sequence[str]) -> JsonObj:
+        """Add a new user"""
+
+    @abstractmethod
+    def delete_user(self, name: str) -> JsonObj:
+        """Delete existing user"""
+
+    @abstractmethod
+    def update_user(self, name: str, key: str, value: str) -> JsonObj:
+        """Update user Info"""
+
+    @abstractmethod
+    def get_user(self) -> JsonObj:
+        """Get user info by user ID"""
+
+    @abstractmethod
+    def login_user(self, username: str, password: str) -> JsonObj:
+        """Get user info by user ID"""
 
     # Local configuration access
 
