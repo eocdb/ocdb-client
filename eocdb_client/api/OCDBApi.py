@@ -4,8 +4,7 @@ import shutil
 import urllib.parse
 import urllib.request
 import zipfile
-from typing import Any, Optional, Sequence
-
+from typing import Any, Optional, Sequence, List
 
 from .api import Api, Config, JsonObj
 from .mpf import MultiPartForm
@@ -71,6 +70,22 @@ class OCDBApi(Api):
         request.add_header('Content-length', len(data))
         with urllib.request.urlopen(request) as response:
             return json.load(response)
+
+    def download_datasets_by_ids(self, ids: List[str], download_docs: bool, out_fn: Optional[str]) -> str:
+        data = {'id_list': ids, 'docs': download_docs}
+        data = json.dumps(data).encode('utf-8')
+
+        request = self._make_request(f'/store/download', data=data, method="POST")
+
+        if not out_fn:
+            out_fn = 'download.zip'
+
+        with urllib.request.urlopen(request) as response, open(out_fn, 'wb') as out_file:
+            shutil.copyfileobj(response, out_file)
+            out_file.close()
+            with zipfile.ZipFile(out_fn) as zf:
+                zf.extractall()
+        return f'{ids} downloaded to {out_fn}'
 
     def validate_dataset(self, dataset_file: str) -> JsonObj:
         with open(dataset_file) as fp:
@@ -148,8 +163,8 @@ class OCDBApi(Api):
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def get_submissions_for_user(self, user_id: int) -> JsonObj:
-        request = self._make_request(f'/store/upload/user/{str(user_id)}', method="GET")
+    def get_submissions_for_user(self, user_id: str) -> JsonObj:
+        request = self._make_request(f'/store/upload/user/{user_id}', method="GET")
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
@@ -194,14 +209,10 @@ class OCDBApi(Api):
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def upload_submission_file(self, submission_id: str, index: int, dataset_files: Sequence[str],
-                               doc_files: Sequence[str]) -> JsonObj:
+    def upload_submission_file(self, submission_id: str, index: int, file: str) -> JsonObj:
         form = MultiPartForm()
 
-        for dataset_file in dataset_files:
-            form.add_file(f'datasetfiles', os.path.basename(dataset_file), dataset_file, mime_type="text/plain")
-        for doc_file in doc_files:
-            form.add_file(f'docfiles', os.path.basename(doc_file), doc_file)
+        form.add_file(f'files', os.path.basename(file), file, mime_type="text/plain")
 
         data = bytes(form)
 
