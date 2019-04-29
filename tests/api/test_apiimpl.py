@@ -1,10 +1,11 @@
 import json
+import os
 import urllib.request
 from abc import ABCMeta
 
 import httpretty
 
-from eocdb_client.api.OCDBApi import OCDBApi
+from eocdb_client.api.OCDBApi import OCDBApi, USER_DIR
 from eocdb_client.configstore import MemConfigStore
 from tests.helpers import ClientTest
 
@@ -232,6 +233,12 @@ class ConfigApiTest(ApiTest):
 
 
 class ApiImplTest(ApiTest):
+
+    def setUp(self):
+        login_ifo_file = os.path.join(USER_DIR, "login_info")
+        if os.path.isfile(login_ifo_file):
+            os.remove(login_ifo_file)
+
     def test_constr(self):
         api = OCDBApi()
         self.assertIsNotNone(api.config)
@@ -240,3 +247,24 @@ class ApiImplTest(ApiTest):
         api = OCDBApi(server_url="https://bibosrv", config_store=MemConfigStore(server_url="https://bertsrv"))
         self.assertIsNotNone(api.config)
         self.assertEqual("https://bibosrv", api.server_url)
+
+    def test_store_and_load_login_cookie(self):
+        cookie_content = "nasenmann.org; expires: never"
+        OCDBApi.store_login_cookie(cookie_content)
+
+        result = OCDBApi.read_login_cookie()
+        self.assertEqual(cookie_content, result)
+
+    def test_load_login_cookie_not_existing(self):
+        result = OCDBApi.read_login_cookie()
+        self.assertIsNone(result)
+
+    def test_store_twice_overrides_cookie_file(self):
+        cookie_content = "nasenmann.org; expires: never"
+        OCDBApi.store_login_cookie(cookie_content)
+
+        cookie_content = "hell-yeah!; expires: now"
+        OCDBApi.store_login_cookie(cookie_content)
+
+        result = OCDBApi.read_login_cookie()
+        self.assertEqual(cookie_content, result)

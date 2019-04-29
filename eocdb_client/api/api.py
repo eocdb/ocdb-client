@@ -110,12 +110,12 @@ class Api(metaclass=ABCMeta):
         """Update user Info"""
 
     @abstractmethod
-    def get_user(self) -> JsonObj:
-        """Get user info by user ID"""
+    def get_user(self, name: str) -> JsonObj:
+        """Get user info by user name"""
 
     @abstractmethod
     def login_user(self, username: str, password: str) -> JsonObj:
-        """Get user info by user ID"""
+        """Log in with username and password"""
 
     # Local configuration access
 
