@@ -284,16 +284,16 @@ def logout_user(ctx):
 
 
 @click.command(name="get")
-@click.option('--username', '-u', metavar='<user-name>', help='User Name')
+@click.option('--username', '-u', metavar='<user-name>', help='User Name', required=True)
 @click.pass_context
 def get_user(ctx, username: str):
-    """Get submission file --submission_id <submission_id> --index <index>."""
+    """Get user --username <username>."""
     result = ctx.obj.get_user(username)
     _dump_json(result)
 
 
 @click.command(name="delete")
-@click.option('--username', '-u', metavar='<user-name>', help='User Name')
+@click.option('--username', '-u', metavar='<user-name>', help='User Name', required=True)
 @click.pass_context
 def delete_user(ctx, username: str):
     """Delete User --username <name>."""
