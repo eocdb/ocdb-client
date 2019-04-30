@@ -269,6 +269,24 @@ class OCDBApi(Api):
 
         request = self._make_request(f'/users/login', data=data, method="POST")
         with urllib.request.urlopen(request) as response:
+            info = response.info()
+            if info.__contains__("Set-Cookie"):
+                cookie = info.__getitem__("Set-Cookie")
+                OCDBApi.store_login_cookie(cookie)
+
+            return json.load(response)
+
+    def logout_user(self) -> JsonObj:
+        cookie = OCDBApi.read_login_cookie()
+        if cookie is None:
+            pass
+
+
+        request = self._make_request(f'/users/logout', method="GET")
+
+        # Should be a message in the headers, but I can't find it tb 2019-04-29
+        OCDBApi.delete_login_cookie()
+        with urllib.request.urlopen(request) as response:
             return json.load(response)
 
     # Local configuration access
@@ -308,7 +326,14 @@ class OCDBApi(Api):
 
     def _make_request(self, path: str, method=None, data=None, headers=None) -> urllib.request.Request:
         url = self._make_url(path)
-        request = urllib.request.Request(url, data=data, headers=headers or {}, method=method)
+        if headers is None:
+            headers = {}
+
+        cookie = OCDBApi.read_login_cookie()
+        if cookie is not None:
+            headers.update({"Cookie": cookie})
+
+        request = urllib.request.Request(url, data=data, headers=headers, method=method)
         request.add_header("User-Agent", USER_AGENT)
         return request
 
@@ -334,6 +359,29 @@ class OCDBApi(Api):
                 self._ensure_valid_config_name(name)
             self._config = config
 
+    @staticmethod
+    def store_login_cookie(cookie: str):
+        login_info_file = os.path.join(USER_DIR, "login_info")
+        if os.path.isfile(login_info_file):
+            os.remove(login_info_file)
+
+        with open(login_info_file, "w") as out_file:
+            out_file.write(cookie)
+
+    @staticmethod
+    def read_login_cookie() -> Optional[str]:
+        login_info_file = os.path.join(USER_DIR, "login_info")
+        if os.path.isfile(login_info_file):
+            with open(login_info_file, "r") as in_file:
+                return in_file.read()
+
+        return None
+
+    @staticmethod
+    def delete_login_cookie():
+        login_info_file = os.path.join(USER_DIR, "login_info")
+        if os.path.isfile(login_info_file):
+            os.remove(login_info_file)
 
 def _split_dataset_path(dataset_path: str) -> Sequence[str]:
     path_components = dataset_path.split('/')

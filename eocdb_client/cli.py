@@ -402,20 +402,25 @@ def login_user(ctx, username: str, password: str):
     _dump_json(result)
 
 
+@click.command(name="logout")
+@click.pass_context
+def logout_user(ctx):
+    """Log out current user if logged in."""
+    result = ctx.obj.logout_user()
+    _dump_json(result)
+
+
 @click.command(name="get")
-@click.option('--username', '-u', metavar='<user-name>', help='User Name')
+@click.option('--username', '-u', metavar='<user-name>', help='User Name', required=True)
 @click.pass_context
 def get_user(ctx, username: str):
-    """Get user by <username>."""
-    if not username:
-        raise click.ClickException("Please give a <submission-id>.")
-
+    """Get user --username <username>."""
     result = ctx.obj.get_user(username)
     _dump_json(result)
 
 
 @click.command(name="delete")
-@click.option('--username', '-u', metavar='<user-name>', help='User Name')
+@click.option('--username', '-u', metavar='<user-name>', help='User Name', required=True)
 @click.pass_context
 def delete_user(ctx, username: str):
     """Delete user by <username>."""
@@ -497,3 +502,4 @@ user.add_command(password_user)
 user.add_command(get_user)
 user.add_command(delete_user)
 user.add_command(login_user)
+user.add_command(logout_user)
