@@ -275,6 +275,14 @@ def login_user(ctx):
     _dump_json(result)
 
 
+@click.command(name="logout")
+@click.pass_context
+def logout_user(ctx):
+    """Log out current user if logged in."""
+    result = ctx.obj.logout_user()
+    _dump_json(result)
+
+
 @click.command(name="get")
 @click.option('--username', '-u', metavar='<user-name>', help='User Name')
 @click.pass_context
@@ -352,3 +360,4 @@ user.add_command(update_user)
 user.add_command(get_user)
 user.add_command(delete_user)
 user.add_command(login_user)
+user.add_command(logout_user)

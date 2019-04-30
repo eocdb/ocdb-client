@@ -235,9 +235,9 @@ class ConfigApiTest(ApiTest):
 class ApiImplTest(ApiTest):
 
     def setUp(self):
-        login_ifo_file = os.path.join(USER_DIR, "login_info")
-        if os.path.isfile(login_ifo_file):
-            os.remove(login_ifo_file)
+        login_info_file = os.path.join(USER_DIR, "login_info")
+        if os.path.isfile(login_info_file):
+            os.remove(login_info_file)
 
     def test_constr(self):
         api = OCDBApi()
@@ -268,3 +268,13 @@ class ApiImplTest(ApiTest):
 
         result = OCDBApi.read_login_cookie()
         self.assertEqual(cookie_content, result)
+
+    def test_delete_login_cookie(self):
+        cookie_content = "nasenmann.org; expires: never"
+        OCDBApi.store_login_cookie(cookie_content)
+
+        login_info_file = os.path.join(USER_DIR, "login_info")
+        self.assertTrue(os.path.isfile(login_info_file))
+
+        OCDBApi.delete_login_cookie()
+        self.assertFalse(os.path.isfile(login_info_file))
