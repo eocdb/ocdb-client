@@ -71,7 +71,7 @@ class Api(metaclass=ABCMeta):
         """Get submission"""
 
     @abstractmethod
-    def get_submissions_for_user(self, user_id: int) -> JsonObj:
+    def get_submissions_for_user(self, user_id: str) -> JsonObj:
         """Get submissions for user"""
 
     @abstractmethod

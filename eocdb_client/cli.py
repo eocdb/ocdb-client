@@ -1,5 +1,5 @@
 import json
-from typing import Sequence
+from typing import Sequence, List
 
 import click
 
@@ -31,7 +31,7 @@ def conf(ctx, name, value):
         _dump_json(config)
 
 
-@click.command(name='upl')
+@click.command(name='upload')
 @click.argument('store_path', metavar='<store_path>')
 @click.argument('dataset_files', metavar='<dataset-file> ...', nargs=-1)
 @click.option('--doc-file', '-d', 'doc_files', metavar='<doc-file>', nargs=1,
@@ -49,9 +49,29 @@ def upload_submission(ctx, store_path: str, dataset_files: Sequence[str], doc_fi
     """Upload multiple dataset and documentation files."""
     if not dataset_files:
         raise click.ClickException("At least a single <dataset-file> must be given.")
+    if not submission_id:
+        raise click.ClickException("Please give a submission ID.")
+    if not path:
+        raise click.ClickException("Please give a path.")
+
     validation_results = ctx.obj.upload_submission(store_path, dataset_files, doc_files, path, submission_id,
                                                    publication_date, allow_publication)
     _dump_json(validation_results)
+
+
+@click.command(name="download")
+@click.option('--dataset-ids', '-ids', metavar='<dataset-ids>', help='Specify dataset IDs', multiple=True)
+@click.option('--download-docs', '-docs', metavar='<docs>', help='Get docs, too', is_flag=True)
+@click.option('--out-file', '-o', metavar='<out-file>', help='Specify name for the outfile (zip)')
+@click.pass_context
+def download_datasets(ctx, dataset_ids: List[str], download_docs: bool, out_file: str):
+    """Download dataset files --dataset-ids <id> --download-docs [--out-file <out-file>]."""
+
+    if not dataset_ids:
+        raise click.ClickException("Please give at least one dataset-id.")
+
+    result = ctx.obj.download_datasets_by_ids(dataset_ids, download_docs, out_file)
+    print(result)
 
 
 @click.command(name="get")
@@ -81,6 +101,10 @@ def get_dataset(ctx, dataset_id: str, dataset_path: str):
 @click.pass_context
 def find_datasets(ctx, expr, offset, count):
     """Find datasets using query expression <expr>."""
+
+    if not expr:
+        raise click.ClickException("Please give an <expr>.")
+
     dataset_refs = ctx.obj.find_datasets(expr=expr, offset=offset, count=count)
     _dump_json(dataset_refs)
 
@@ -90,6 +114,10 @@ def find_datasets(ctx, expr, offset, count):
 @click.pass_context
 def list_datasets(ctx, path):
     """List datasets in <path>."""
+
+    if not path:
+        raise click.ClickException("Please give a <path>.")
+
     dataset = ctx.obj.list_datasets_in_path(path)
     _dump_json(dataset)
 
@@ -99,15 +127,20 @@ def list_datasets(ctx, path):
 @click.pass_context
 def add_dataset(ctx, file):
     """Add dataset <file>."""
+
+    if not file:
+        raise click.ClickException("Please give a <file>.")
     ctx.obj.add_dataset(file)
 
 
 # noinspection PyShadowingBuiltins
-@click.command(name="del")
+@click.command(name="delete")
 @click.argument('id', metavar='<id>')
 @click.pass_context
 def delete_dataset(ctx, id):
     """Delete dataset given by <id>."""
+    if not id:
+        raise click.ClickException("Please give an <id>.")
     ctx.obj.delete_dataset(id)
 
 
@@ -116,59 +149,81 @@ def delete_dataset(ctx, id):
 @click.pass_context
 def update_dataset(ctx, file):
     """Update dataset <file>."""
-    ctx.obj.update_dataset(file)
+
+    if not file:
+        raise NotImplementedError("Dataset files cannot be updated")
+
+    #ctx.obj.update_dataset(file)
 
 
-@click.command(name="val")
+@click.command(name="validate")
 @click.argument('file', metavar='<file>')
 @click.pass_context
 def validate_dataset(ctx, file):
     """Validate dataset <file>."""
+
+    if not file:
+        raise click.ClickException("Please give a <file>.")
+
     validation_result = ctx.obj.validate_dataset(file)
     _dump_json(validation_result)
 
 
 @click.command(name="get-by-sb")
-@click.argument('submissionid', metavar='<submissionid>')
+@click.argument('submission-id', metavar='<submission-id>')
 @click.pass_context
-def get_datasets_by_submission(ctx, submissionid):
-    """Validate dataset <file>."""
-    result = ctx.obj.get_datasets_by_submission(submission_id=submissionid)
+def get_datasets_by_submission(ctx, submission_id):
+    """Get datasets by submission <submission_id>."""
+
+    if not submission_id:
+        raise click.ClickException("Please give a <submission-id>.")
+
+    result = ctx.obj.get_datasets_by_submission(submission_id=submission_id)
     _dump_json(result)
 
 
 @click.command(name="del-by-sb")
-@click.argument('submissionid', metavar='<submissionid>')
+@click.argument('submission-id', metavar='<submission-id>')
 @click.pass_context
-def delete_datasets_by_submission(ctx, submissionid):
-    """Validate dataset <file>."""
-    result = ctx.obj.delete_datasets_by_submission(submission_id=submissionid)
+def delete_datasets_by_submission(ctx, submission_id):
+    """Delete datasets by <submission-id>."""
+
+    if not submission_id:
+        raise click.ClickException("Please give a <submission-id>.")
+
+    result = ctx.obj.delete_datasets_by_submission(submission_id=submission_id)
     _dump_json(result)
 
 
 @click.command(name="get")
-@click.option('--submission-id', '-s', metavar='<submission-id>', help='Specify submission ID')
+@click.argument('submission-id', metavar='<submission-id>')
 @click.pass_context
 def get_submission(ctx, submission_id: str):
     """Get submission --submission_id <submission_id>."""
+
+    if not submission_id:
+        raise click.ClickException("Please give a <submission-id>.")
+
     result = ctx.obj.get_submission(submission_id)
     _dump_json(result)
 
 
 @click.command(name="user")
-@click.option('--user-id', '-u', metavar='<user-id>', help='Specify user ID')
+@click.argument('user-name', metavar='<user-id>')
 @click.pass_context
-def get_submissions_for_user(ctx, user_id: int):
+def get_submissions_for_user(ctx, user_id: str):
     """Get submissions for user --user_id <user_id>."""
+
     result = ctx.obj.get_submissions_for_user(user_id)
     _dump_json(result)
 
 
 @click.command(name="delete")
-@click.option('--submission-id', '-s', metavar='<submission-id>', help='Specify submission ID')
+@click.argument('--submission-id', metavar='<submission-id>')
 @click.pass_context
 def delete_submission(ctx, submission_id: str):
-    """Delete submission --submission_id <submission_id>."""
+    """Delete submission <submission_id>."""
+
     result = ctx.obj.delete_submission(submission_id)
     _dump_json(result)
 
@@ -179,6 +234,12 @@ def delete_submission(ctx, submission_id: str):
 @click.pass_context
 def update_submission_status(ctx, submission_id: str, status: str):
     """Update submission status --submission_id <submission_id> --status <status>."""
+
+    if not submission_id:
+        raise click.ClickException("Please give a <submission-id>.")
+    if not status:
+        raise click.ClickException("Please give a <status>.")
+
     result = ctx.obj.update_submission_status(submission_id, status)
     _dump_json(result)
 
@@ -190,30 +251,47 @@ def update_submission_status(ctx, submission_id: str, status: str):
 @click.pass_context
 def download_submission_file(ctx, submission_id: str, index: int, out_file: str):
     """Get submission file --submission_id <submission_id> --index <index>."""
+    if not submission_id:
+        raise click.ClickException("Please give a <submission-id>.")
+    if not index:
+        raise click.ClickException("Please give an <index>.")
+
     result = ctx.obj.download_submission_file(submission_id, index, out_file)
     print(result)
 
 
-@click.command(name="sb-file")
+@click.command(name="get")
 @click.option('--submission-id', '-s', metavar='<submission-id>', help='Specify submission ID')
 @click.option('--index', '-s', metavar='<index>', help='Specify submission file index')
 @click.pass_context
 def get_submission_file(ctx, submission_id: str, index: int):
     """Get submission file --submission_id <submission_id> --index <index>."""
+
+    if not submission_id:
+        raise click.ClickException("Please give a <submission-id>.")
+    if not index:
+        raise click.ClickException("Please give an <index>.")
+
     result = ctx.obj.get_submission_file(submission_id, index)
     print(result)
 
 
-@click.command(name='upl')
+@click.command(name='upload')
 @click.option('--file', metavar='<submission-file>', help="Give submission file to re-upload")
 @click.option('--submission-id', '-s', 'submission_id', metavar='<submission-id>', help="Give submission ID")
 @click.option('--index', '-s', metavar='<index>', help='Specify submission file index')
 @click.pass_context
-def upload_submission_file(ctx, submission_id: str, index: int, dataset_files: Sequence[str], doc_files: Sequence[str]):
+def upload_submission_file(ctx, submission_id: str, index: int, file: str):
     """Upload multiple dataset and documentation files."""
-    if not dataset_files and not doc_files:
+
+    if not file:
         raise click.ClickException("At least a single <file> must be given.")
-    validation_results = ctx.obj.upload_submission(submission_id, index, dataset_files, doc_files)
+    if not submission_id:
+        raise click.ClickException("Please give a <submission-id>.")
+    if not index:
+        raise click.ClickException("Please give an <index>.")
+
+    validation_results = ctx.obj.upload_submission_file(submission_id, index, file)
     _dump_json(validation_results)
 
 
@@ -239,7 +317,7 @@ def cli(ctx, server_url):
 
 
 @click.command(name="add")
-@click.option('--username', '-u', metavar='<user-name>', help='User Name')
+@click.option('--username', '-u', metavar='<username>', help='Username')
 @click.option('--password', '-p', metavar='<password>', help='Password')
 @click.option('--first-name', '-fn', metavar='<first_name>', help='First Name')
 @click.option('--last-name', '-ln', metavar='<last_name>', help='Last Name')
@@ -249,28 +327,77 @@ def cli(ctx, server_url):
 @click.pass_context
 def add_user(ctx, username: str,  password: str, first_name: str, last_name: str, email: str, phone: str,
              roles: Sequence[str]):
-    """Get submission file --submission_id <submission_id> --index <index>."""
+    """Add a user"""
+
+    if not username:
+        raise click.ClickException("Please give a <username>.")
+    if not password:
+        raise click.ClickException("Please give a <password>.")
+    if not first_name:
+        raise click.ClickException("Please give a <first-name>.")
+    if not last_name:
+        raise click.ClickException("Please give a <last-name>.")
+    if not email:
+        raise click.ClickException("Please give a <email>.")
+    if not phone:
+        raise click.ClickException("Please give a <phone>.")
+    if not roles or len(roles) == 0:
+        raise click.ClickException("Please give at least one <role>")
+
     result = ctx.obj.add_user(username,  password, first_name, last_name, email, phone, roles)
     _dump_json(result)
 
 
 @click.command(name="update")
-@click.option('--username', '-u', metavar='<user-name>', help='User Name')
+@click.option('--username', '-u', metavar='<username>', help='Username')
 @click.option('--key', '-k', metavar='<key>', help='Key (e.g. name)')
 @click.option('--value', '-v', metavar='<value>', help='Value for the field')
 @click.pass_context
 def update_user(ctx, username: str, key: str, value: str):
-    """Get submission file --submission_id <submission_id> --index <index>."""
+    """Update an existing user"""
+    if not username:
+        raise click.ClickException("Please give a <submission-id>.")
+    if not key:
+        raise click.ClickException("Please give a <key>.")
+    if not value:
+        raise click.ClickException("Please give a <value>.")
+
     result = ctx.obj.update_user(username, key, value)
     _dump_json(result)
 
 
-@click.command(name="login")
+@click.command(name="password")
+@click.option('--username', '-u', metavar='<username>', help='Username')
+@click.option('--old-password', '-op', metavar='<old-password>', help='Old Password')
+@click.option('--password', '-p', metavar='<password>', help='New Password')
 @click.pass_context
-def login_user(ctx):
-    """Get submission file --submission_id <submission_id> --index <index>."""
-    username = input("User name:")
-    password = input("Password:")
+def password_user(ctx, username: str, old_password: str, password: str):
+    """Set the password for an existing user"""
+
+    if not username:
+        raise click.ClickException("Please give a <submission-id>.")
+    if not password:
+        raise click.ClickException("Please give a NEW <password>.")
+    if not old_password:
+        raise click.ClickException("Please give your OLD <password>.")
+
+    #login_user(username, old_password)
+
+    result = ctx.obj.update_user(username, 'password', password)
+    _dump_json(result)
+
+
+@click.command(name="login")
+@click.option('--username', '-u', metavar='<username>', help='Username')
+@click.option('--password', '-p', metavar='<password>', help='Password')
+@click.pass_context
+def login_user(ctx, username: str, password: str):
+    """Login a user"""
+    if not username:
+        username = input("User name:")
+    if not password:
+        password = input("Password:")
+
     result = ctx.obj.login_user(username, password)
     _dump_json(result)
 
@@ -296,7 +423,11 @@ def get_user(ctx, username: str):
 @click.option('--username', '-u', metavar='<user-name>', help='User Name', required=True)
 @click.pass_context
 def delete_user(ctx, username: str):
-    """Delete User --username <name>."""
+    """Delete user by <username>."""
+
+    if not username:
+        raise click.ClickException("Please give a <submission-id>.")
+
     result = ctx.obj.delete_user(username)
     _dump_json(result)
 
@@ -310,6 +441,13 @@ def ds():
 
 @click.group()
 def sbm():
+    """
+    Submission management.
+    """
+
+
+@click.group()
+def sbmfile():
     """
     Submission management.
     """
@@ -333,11 +471,12 @@ cli.add_command(conf)
 cli.add_command(ds)
 cli.add_command(df)
 cli.add_command(sbm)
+cli.add_command(sbmfile)
 cli.add_command(user)
 cli.add_command(show_license)
 
-ds.add_command(upload_submission)
 ds.add_command(find_datasets)
+ds.add_command(download_datasets)
 ds.add_command(get_dataset)
 ds.add_command(add_dataset)
 ds.add_command(delete_dataset)
@@ -348,15 +487,18 @@ ds.add_command(get_datasets_by_submission)
 ds.add_command(delete_datasets_by_submission)
 
 sbm.add_command(update_submission_status)
+sbm.add_command(upload_submission)
 sbm.add_command(get_submission)
 sbm.add_command(get_submissions_for_user)
 sbm.add_command(delete_submission)
-sbm.add_command(get_submission_file)
-sbm.add_command(download_submission_file)
-sbm.add_command(upload_submission_file)
+
+sbmfile.add_command(get_submission_file)
+sbmfile.add_command(download_submission_file)
+sbmfile.add_command(upload_submission_file)
 
 user.add_command(add_user)
 user.add_command(update_user)
+user.add_command(password_user)
 user.add_command(get_user)
 user.add_command(delete_user)
 user.add_command(login_user)
