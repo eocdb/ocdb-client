@@ -22,14 +22,6 @@ class Api(metaclass=ABCMeta):
         """Validate the given dataset and return a validation report."""
 
     @abstractmethod
-    def add_dataset(self, dataset_file: str):
-        """Add a dataset."""
-
-    @abstractmethod
-    def update_dataset(self, dataset_file: str):
-        """Update a dataset."""
-
-    @abstractmethod
     def delete_dataset(self, dataset_file: str):
         """Delete a dataset."""
 

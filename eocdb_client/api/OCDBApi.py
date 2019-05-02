@@ -94,20 +94,6 @@ class OCDBApi(Api):
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def add_dataset(self, dataset_file: str):
-        with open(dataset_file) as fp:
-            dataset_json = fp.read()
-        request = self._make_request('/datasets', method="PUT", data=dataset_json.encode("utf-8"))
-        with urllib.request.urlopen(request) as response:
-            return response.read()
-
-    def update_dataset(self, dataset_file: str):
-        with open(dataset_file) as fp:
-            dataset_json = fp.read()
-        request = self._make_request(f'/datasets', method="POST", data=dataset_json.encode("utf-8"))
-        with urllib.request.urlopen(request) as response:
-            return response.read()
-
     def delete_dataset(self, dataset_id: str):
         request = self._make_request(f'/datasets/{dataset_id}', method="DELETE")
         with urllib.request.urlopen(request) as response:

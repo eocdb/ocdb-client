@@ -122,19 +122,8 @@ def list_datasets(ctx, path):
     _dump_json(dataset)
 
 
-@click.command(name="add")
-@click.argument('file', metavar='<file>')
-@click.pass_context
-def add_dataset(ctx, file):
-    """Add dataset <file>."""
-
-    if not file:
-        raise click.ClickException("Please give a <file>.")
-    ctx.obj.add_dataset(file)
-
-
 # noinspection PyShadowingBuiltins
-@click.command(name="delete")
+@click.command(name="del")
 @click.argument('id', metavar='<id>')
 @click.pass_context
 def delete_dataset(ctx, id):
@@ -144,19 +133,7 @@ def delete_dataset(ctx, id):
     ctx.obj.delete_dataset(id)
 
 
-@click.command(name="upd")
-@click.argument('file', metavar='<file>')
-@click.pass_context
-def update_dataset(ctx, file):
-    """Update dataset <file>."""
-
-    if not file:
-        raise NotImplementedError("Dataset files cannot be updated")
-
-    #ctx.obj.update_dataset(file)
-
-
-@click.command(name="validate")
+@click.command(name="val")
 @click.argument('file', metavar='<file>')
 @click.pass_context
 def validate_dataset(ctx, file):
@@ -478,9 +455,7 @@ cli.add_command(show_license)
 ds.add_command(find_datasets)
 ds.add_command(download_datasets)
 ds.add_command(get_dataset)
-ds.add_command(add_dataset)
 ds.add_command(delete_dataset)
-ds.add_command(update_dataset)
 ds.add_command(validate_dataset)
 ds.add_command(list_datasets)
 ds.add_command(get_datasets_by_submission)

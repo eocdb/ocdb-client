@@ -71,18 +71,6 @@ class DatasetsApiTest(ApiTest):
                                status=200)
         self.api.validate_dataset(self.get_input_path("chl", "chl-s170604w.sub"))
 
-    def test_add_datasets(self):
-        httpretty.register_uri(httpretty.PUT,
-                               TEST_URL + "eocdb/api/v0.1.0/datasets",
-                               status=200)
-        self.api.add_dataset(self.get_input_path("chl", "chl-s170604w.sub"))
-
-    def test_update_datasets(self):
-        httpretty.register_uri(httpretty.POST,
-                               TEST_URL + "eocdb/api/v0.1.0/datasets",
-                               status=200)
-        self.api.update_dataset(self.get_input_path("chl", "chl-s170604w.sub"))
-
     def test_delete_datasets(self):
         httpretty.register_uri(httpretty.DELETE,
                                TEST_URL + "eocdb/api/v0.1.0/datasets/3",
