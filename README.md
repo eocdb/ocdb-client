@@ -1,6 +1,6 @@
-# eocdb-client
+[![Build Status](https://travis-ci.org/bcdev/eocdb-client.svg?branch=master)](https://travis-ci.org/bcdev/eocdb-client)
 
-EUMETSAT Ocean Colour Database (OCDB) Python Client
+# Copernicus Ocean Colour Database (OCDB) Python Client
 
 
 ## Installation
