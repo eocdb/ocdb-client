@@ -1,6 +1,6 @@
 import unittest
 import os
-from eocdb_client.configstore import ConfigStore, MemConfigStore, JsonConfigStore
+from ocdb.configstore import ConfigStore, MemConfigStore, JsonConfigStore
 
 
 class ConfigStoreTest(unittest.TestCase):

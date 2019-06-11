@@ -5,9 +5,9 @@ from typing import List, Dict
 import httpretty
 from click.testing import CliRunner
 
-from eocdb_client.cli import cli
-from eocdb_client.configstore import MemConfigStore
-from eocdb_client.version import LICENSE_TEXT
+from ocdb.cli import cli
+from ocdb.configstore import MemConfigStore
+from ocdb.version import LICENSE_TEXT
 from tests.helpers import ClientTest
 
 

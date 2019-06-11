@@ -1,6 +1,6 @@
 import unittest
 
-from eocdb_client.api.mpf import MultiPartForm
+from ocdb.api.mpf import MultiPartForm
 from tests.helpers import ClientTest
 
 

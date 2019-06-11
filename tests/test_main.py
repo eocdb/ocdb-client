@@ -1,8 +1,7 @@
-import subprocess
-import sys
 import unittest
 
-from eocdb_client.main import main
+from ocdb.main import main
+
 
 class MainTest(unittest.TestCase):
 
@@ -11,6 +10,6 @@ class MainTest(unittest.TestCase):
             main(["--help"])
 
 # @todo 1 tb/** fails - reactivate later 2019-04-21
-    # def test_run_module_as_script(self):
-    #     code = subprocess.run([sys.executable, __file__, "--help"]).returncode
-    #     self.assertEquals(0, code)
+# def test_run_module_as_script(self):
+#     code = subprocess.run([sys.executable, __file__, "--help"]).returncode
+#     self.assertEquals(0, code)

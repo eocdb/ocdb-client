@@ -28,6 +28,7 @@ from setuptools import setup, find_packages
 requirements = [
     "click",
     "pyyaml",
+    'pandas'
 ]
 
 packages = find_packages(exclude=["tests", "tests.*"])
@@ -35,7 +36,7 @@ packages = find_packages(exclude=["tests", "tests.*"])
 NAME = None
 VERSION = None
 DESCRIPTION = None
-with open('eocdb_client/version.py') as f:
+with open('ocdb/version.py') as f:
     exec(f.read())
 
 setup(
@@ -48,7 +49,7 @@ setup(
     install_requires=requirements,
     entry_points={
         'console_scripts': [
-            'eocdb-cli = eocdb_client.main:main'
+            'ocdb-cli = ocdb.main:main'
         ],
     },
 )

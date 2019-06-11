@@ -1,13 +1,13 @@
 import os
 import unittest
 import warnings
-from abc import ABCMeta, abstractmethod
-from typing import Any, Dict
+from abc import ABCMeta
+from typing import Dict
 
 import httpretty
 
-from eocdb_client.api.OCDBApi import OCDBApi
-from eocdb_client.configstore import MemConfigStore
+from ocdb.api.OCDBApi import OCDBApi
+from ocdb.configstore import MemConfigStore
 
 
 class ClientTest(unittest.TestCase, metaclass=ABCMeta):
@@ -23,7 +23,7 @@ class ClientTest(unittest.TestCase, metaclass=ABCMeta):
 
     @property
     def api_kwargs(self) -> Dict:
-        return dict(config_store=MemConfigStore(server_url="http://test-server/"))
+        return dict(config_store=MemConfigStore(server_url="https://ocdb.eumetsat.int/"))
 
     @classmethod
     def get_input_base_dir(cls) -> str:

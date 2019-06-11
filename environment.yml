@@ -1,4 +1,4 @@
-name: eocdb-client-dev
+name: ocdb
 
 channels:
   - conda-forge
@@ -9,13 +9,14 @@ dependencies:
   #
   # production dependencies
   #
-  - click =7.0
-  - pyyaml =3.12
-  - ipython
+  - click
+  - pyyaml
+  - pandas
   #
   # development dependencies
   #
-  - httpretty =0.9.5
-  - pytest =3.5.1
-  - pytest-cov =2.5.1
-  - flake8 =3.5.0
+  - httpretty
+  - pytest
+  - pytest-cov
+  - flake8
+  - ipython

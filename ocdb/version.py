@@ -19,11 +19,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-VERSION = "0.1.0"
-DESCRIPTION = "EUMETSAT Ocean Colour In-Situ Database Python Client"
-DOCS_URL='https://github.com/bcdev/eocdb-client/blob/master/README.md'
-NAME='eocdb-client'
-LICENSE_TEXT="""
+VERSION = "0.1.1"
+API_VERSION = "0.1.5"
+DESCRIPTION = "Copernicus Ocean Colour In-Situ Database Python Client"
+DOCS_URL = 'https://github.com/bcdev/eocdb-client/blob/master/README.md'
+NAME = 'ocdb'
+LICENSE_TEXT = """
 The MIT License (MIT)
 Copyright (c) 2018 by EUMETSAT
 
