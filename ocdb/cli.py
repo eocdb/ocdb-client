@@ -51,7 +51,7 @@ def upload_submission(ctx, store_path: str, dataset_files: Sequence[str], doc_fi
     if not submission_id:
         raise click.ClickException("Please give a submission ID.")
     if not store_path:
-        raise click.ClickException("Please give a path.")
+        raise click.ClickException("Please give a path. Format should be affiliation/cruise/experiment")
 
     validation_results = ctx.obj.upload_submission(store_path, dataset_files, doc_files, store_path, submission_id,
                                                    publication_date, allow_publication)

@@ -54,14 +54,13 @@ class OCDBApi(Api):
 
     # Remote dataset access
 
-    def upload_submission(self, store_path: str, dataset_files: Sequence[str], doc_files: Sequence[str], path: str,
+    def upload_submission(self, store_path: str, dataset_files: Sequence[str], doc_files: Sequence[str],
                           submission_id: str, publication_date: str, allow_publication: bool) -> JsonObj:
         """
         Generate a submission by uploading database and files to the submission database
-        :param store_path: The path to the store
+        :param store_path: The path to the store. Should be of format affiliation/cruise/experiment
         :param dataset_files: A list of dataset file names
         :param doc_files: A list of document file names
-        :param path: The path to the data in form of id/cruise/experiment
         :param submission_id: Q unique submission ID
         :param publication_date: The date the data is to be published
         :param allow_publication: Allow publication?
@@ -69,7 +68,7 @@ class OCDBApi(Api):
         """
 
         form = MultiPartForm()
-        form.add_field('path', path)
+        form.add_field('path', store_path)
         form.add_field('submissionid', submission_id)
         form.add_field('publicationdate', publication_date)
         form.add_field('allowpublication', str(allow_publication))

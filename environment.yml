@@ -12,6 +12,7 @@ dependencies:
   - click
   - pyyaml
   - pandas
+  - jupyterlab
   #
   # development dependencies
   #
