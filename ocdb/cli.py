@@ -186,12 +186,11 @@ def get_submission(ctx, submission_id: str):
 
 
 @click.command(name="user")
-@click.argument('user-name', metavar='<user-name>')
 @click.pass_context
-def get_submissions_for_user(ctx, user_name: str):
+def get_submissions_for_user(ctx):
     """Get submissions for user --user_name <user_name>."""
 
-    result = ctx.obj.get_submissions_for_user(user_name)
+    result = ctx.obj.get_submissions_for_user()
     _dump_json(result)
 
 
