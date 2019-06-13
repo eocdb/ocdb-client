@@ -67,24 +67,6 @@ class CliDatasetTest(CliTest):
                          result.output)
         self.assertEqual(0, result.exit_code)
 
-    def test_ds_add(self):
-        httpretty.register_uri(httpretty.PUT,
-                               "http://test-server/eocdb/api/v0.1.0/datasets",
-                               status=200)
-        dataset_file = self.get_input_path("chl", "chl-s170604w.sub")
-        result = self.invoke_cli(["ds", "add", dataset_file])
-        self.assertEqual("", result.output)
-        self.assertEqual(0, result.exit_code)
-
-    def test_ds_upd(self):
-        httpretty.register_uri(httpretty.POST,
-                               "http://test-server/eocdb/api/v0.1.0/datasets",
-                               status=200)
-        dataset_file = self.get_input_path("chl", "chl-s170604w.sub")
-        result = self.invoke_cli(["ds", "upd", dataset_file])
-        self.assertEqual("", result.output)
-        self.assertEqual(0, result.exit_code)
-
     def test_ds_del(self):
         httpretty.register_uri(httpretty.DELETE,
                                "http://test-server/eocdb/api/v0.1.0/datasets/a298f4576e2",

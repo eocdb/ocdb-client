@@ -121,19 +121,8 @@ def list_datasets(ctx, path):
     _dump_json(dataset)
 
 
-@click.command(name="add")
-@click.argument('file', metavar='<file>')
-@click.pass_context
-def add_dataset(ctx, file):
-    """Add dataset <file>."""
-
-    if not file:
-        raise click.ClickException("Please give a <file>.")
-    ctx.obj.add_dataset(file)
-
-
 # noinspection PyShadowingBuiltins
-@click.command(name="delete")
+@click.command(name="del")
 @click.argument('id', metavar='<id>')
 @click.pass_context
 def delete_dataset(ctx, id):
@@ -143,19 +132,7 @@ def delete_dataset(ctx, id):
     ctx.obj.delete_dataset(id)
 
 
-@click.command(name="upd")
-@click.argument('file', metavar='<file>')
-@click.pass_context
-def update_dataset(ctx, file):
-    """Update dataset <file>."""
-
-    if not file:
-        raise NotImplementedError("Dataset files cannot be updated")
-
-    # ctx.obj.update_dataset(file)
-
-
-@click.command(name="validate")
+@click.command(name="val")
 @click.argument('file', metavar='<file>')
 @click.pass_context
 def validate_submission_file(ctx, file):
@@ -476,6 +453,8 @@ ds.add_command(get_dataset)
 # ds.add_command(delete_dataset)
 # ds.add_command(update_dataset)
 # ds.add_command(list_datasets)
+ds.add_command(delete_dataset)
+ds.add_command(list_datasets)
 ds.add_command(get_datasets_by_submission)
 ds.add_command(delete_datasets_by_submission)
 
@@ -488,7 +467,6 @@ sbm.add_command(delete_submission)
 sbmfile.add_command(get_submission_file)
 sbmfile.add_command(download_submission_file)
 sbmfile.add_command(upload_submission_file)
-sbmfile.add_command(validate_submission_file)
 
 user.add_command(add_user)
 user.add_command(update_user)
