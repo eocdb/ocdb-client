@@ -196,7 +196,7 @@ def get_submissions_for_user(ctx, user_name: str):
 
 
 @click.command(name="delete")
-@click.argument('--submission-id', metavar='<submission-id>')
+@click.argument('submission-id', metavar='<submission-id>')
 @click.pass_context
 def delete_submission(ctx, submission_id: str):
     """Delete submission <submission_id>."""
