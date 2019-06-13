@@ -1,5 +1,5 @@
-from eocdb_client.api import new_api
-from eocdb_client.cli import cli
+from ocdb.api import new_api
+from ocdb.cli import cli
 
 
 def main(args=None):

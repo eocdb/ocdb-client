@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from typing import Dict, Any, Optional, Sequence, Union, List
+import pandas as pd
 
 UNDEFINED = object()
 
@@ -13,12 +14,12 @@ class Api(metaclass=ABCMeta):
     # Remote dataset access
 
     @abstractmethod
-    def upload_submission(self, store_path: str, dataset_files: Sequence[str], doc_files: Sequence[str], path: str,
+    def upload_submission(self, store_path: str, dataset_files: Sequence[str], doc_files: Sequence[str],
                           submission_id: str, publication_date: str, allow_publication: bool) -> JsonObj:
         """Upload the given dataset and doc files and return a validation report for each dataset file."""
 
     @abstractmethod
-    def validate_dataset(self, dataset_file: str) -> JsonObj:
+    def validate_submission_file(self, file_name: str) -> JsonObj:
         """Validate the given dataset and return a validation report."""
 
     @abstractmethod
@@ -41,11 +42,11 @@ class Api(metaclass=ABCMeta):
         """Find datasets."""
 
     @abstractmethod
-    def get_dataset(self, dataset_id: str) -> JsonObj:
+    def get_dataset(self, dataset_id: str, fmt: str) -> Union[JsonObj, pd.DataFrame]:
         """Get dataset by ID."""
 
     @abstractmethod
-    def get_dataset_by_name(self, dataset_path: str) -> JsonObj:
+    def get_dataset_by_name(self, dataset_path: str, fmt: str) -> Union[JsonObj, pd.DataFrame]:
         """Get dataset by path and name."""
 
     @abstractmethod
@@ -106,7 +107,7 @@ class Api(metaclass=ABCMeta):
         """Get user info by user name"""
 
     @abstractmethod
-    def login_user(self, username: str, password: str) -> JsonObj:
+    def login_user(self, username: Optional[str], password: Optional[str]) -> JsonObj:
         """Log in with username and password"""
 
     # Local configuration access

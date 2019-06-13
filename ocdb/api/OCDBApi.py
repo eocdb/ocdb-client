@@ -4,7 +4,9 @@ import shutil
 import urllib.parse
 import urllib.request
 import zipfile
-from typing import Any, Optional, Sequence, List
+from typing import Any, Optional, Sequence, List, Union
+
+import pandas as pd
 
 from .api import Api, Config, JsonObj
 from .mpf import MultiPartForm
@@ -13,13 +15,18 @@ from ..version import NAME, VERSION, DESCRIPTION
 
 USER_AGENT = f"{NAME} / {VERSION} {DESCRIPTION}"
 
-API_PATH_PREFIX = "/eocdb/api/v0.1.0"
+API_VERSION = "v0.1.5"
+API_PATH_PREFIX = "/ocdb/api/" + API_VERSION
 
-USER_DIR = os.path.expanduser(os.path.join('~', '.eocdb'))
-DEFAULT_CONFIG_FILE_NAME = 'eocdb-client.json'
+USER_DIR = os.path.expanduser(os.path.join('~', '.ocdb'))
+DEFAULT_CONFIG_FILE_NAME = 'ocdb-client.json'
 DEFAULT_CONFIG_FILE = os.path.join(USER_DIR, DEFAULT_CONFIG_FILE_NAME)
 
 VALID_CONFIG_PARAM_NAMES = {'server_url'}
+
+import ssl
+
+ssl._create_default_https_context = ssl._create_unverified_context
 
 
 def new_api(config_store: ConfigStore = None, server_url: str = None) -> Api:
@@ -47,11 +54,21 @@ class OCDBApi(Api):
 
     # Remote dataset access
 
-    def upload_submission(self, store_path: str, dataset_files: Sequence[str], doc_files: Sequence[str], path: str,
+    def upload_submission(self, store_path: str, dataset_files: Sequence[str], doc_files: Sequence[str],
                           submission_id: str, publication_date: str, allow_publication: bool) -> JsonObj:
+        """
+        Generate a submission by uploading database and files to the submission database
+        :param store_path: The path to the store. Should be of format affiliation/cruise/experiment
+        :param dataset_files: A list of dataset file names
+        :param doc_files: A list of document file names
+        :param submission_id: Q unique submission ID
+        :param publication_date: The date the data is to be published
+        :param allow_publication: Allow publication?
+        :return: A message from the server
+        """
 
         form = MultiPartForm()
-        form.add_field('path', path)
+        form.add_field('path', store_path)
         form.add_field('submissionid', submission_id)
         form.add_field('publicationdate', publication_date)
         form.add_field('allowpublication', str(allow_publication))
@@ -72,6 +89,13 @@ class OCDBApi(Api):
             return json.load(response)
 
     def download_datasets_by_ids(self, ids: List[str], download_docs: bool, out_fn: Optional[str]) -> str:
+        """
+        Download dataset files by dataset IDs
+        :param ids: A list of dataset IDs
+        :param download_docs: Whether document files shall be downloaded as well
+        :param out_fn: A filename for the resulting zip file.
+        :return: A message where the files have been stored
+        """
         data = {'id_list': ids, 'docs': download_docs}
         data = json.dumps(data).encode('utf-8')
 
@@ -87,12 +111,24 @@ class OCDBApi(Api):
                 zf.extractall()
         return f'{ids} downloaded to {out_fn}'
 
-    def validate_dataset(self, dataset_file: str) -> JsonObj:
+    def add_dataset(self, dataset_file: str):
+        """
+        Add a dataset file to the Submission Database
+        :param dataset_file: The dataset file to be added
+        :return: A message from the server
+        """
         with open(dataset_file) as fp:
             dataset_json = fp.read()
-        request = self._make_request('/datasets/validate', method="POST", data=dataset_json.encode("utf-8"))
+        request = self._make_request('/datasets', method="PUT", data=dataset_json.encode("utf-8"))
         with urllib.request.urlopen(request) as response:
-            return json.load(response)
+            return response.read()
+
+    def update_dataset(self, dataset_file: str):
+        with open(dataset_file) as fp:
+            dataset_json = fp.read()
+        request = self._make_request(f'/datasets', method="POST", data=dataset_json.encode("utf-8"))
+        with urllib.request.urlopen(request) as response:
+            return response.read()
 
     def delete_dataset(self, dataset_id: str):
         request = self._make_request(f'/datasets/{dataset_id}', method="DELETE")
@@ -100,21 +136,47 @@ class OCDBApi(Api):
             return response.read()
 
     def delete_datasets_by_submission(self, submission_id: str):
+        """
+        Remove all data from the search database linked to a submission.
+        :param submission_id: The ID of the submission
+        :return: A message from the server
+        """
         request = self._make_request(f'/datasets/submission/{submission_id}', method="DELETE")
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
     def get_datasets_by_submission(self, submission_id: str):
+        """
+        Get all data from the search database linked to a submission.
+        :param submission_id: The ID of the submission
+        :return: A message from the server
+        """
         request = self._make_request(f'/datasets/submission/{submission_id}', method="GET")
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def get_dataset(self, dataset_id: str) -> JsonObj:
+    @staticmethod
+    def _make_pandas_from_dataset(ds: JsonObj) -> pd.DataFrame:
+        df = pd.DataFrame(ds['records'])
+        df.columns = ds['attributes']
+        return df
+
+    def get_dataset(self, dataset_id: str, fmt: str) -> Union[JsonObj, pd.DataFrame]:
+        """
+        Get a dataset from the Search Database by dataset ID.
+        :param dataset_id: ID of teh dataset
+        :param fmt: return format. Can be 'pandas' or 'json'
+        :return:
+        """
         request = self._make_request(f'/datasets/{dataset_id}', method="GET")
         with urllib.request.urlopen(request) as response:
-            return json.load(response)
+            js = json.load(response)
+            if fmt == 'pandas':
+                return OCDBApi._make_pandas_from_dataset(js)
+            else:
+                return json.load(response)
 
-    def get_dataset_by_name(self, dataset_path: str) -> JsonObj:
+    def get_dataset_by_name(self, dataset_path: str, fmt: str) -> Union[JsonObj, pd.DataFrame]:
         path_components = _split_dataset_path(dataset_path)
         if len(path_components) < 4:
             raise ValueError("Invalid dataset path, "
@@ -125,7 +187,11 @@ class OCDBApi(Api):
         name = "/".join(path_components[3:])
         request = self._make_request(f'/datasets/{affil}/{project}/{cruise}/{name}', method="GET")
         with urllib.request.urlopen(request) as response:
-            return json.load(response)
+            js = json.load(response)
+            if format == 'pandas':
+                return OCDBApi._make_pandas_from_dataset(js)
+            else:
+                return json.load(response)
 
     def list_datasets_in_path(self, dataset_path: str) -> JsonObj:
         try:
@@ -138,6 +204,12 @@ class OCDBApi(Api):
             return json.load(response)
 
     def find_datasets(self, **kwargs) -> JsonObj:
+        """
+        Search datasets by expression.
+
+        :param kwargs:
+        :return: A JSON object containing a list of datasets found in the search database
+        """
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
         params = urllib.parse.urlencode(kwargs)
         request = self._make_request(f'/datasets?{params}', method="GET")
@@ -145,16 +217,32 @@ class OCDBApi(Api):
             return json.load(response)
 
     def get_submission(self, submission_id: str) -> JsonObj:
+        """
+        Get a submission by teh user defined ID
+        :param submission_id: The submission ID
+        :return: A JSON object representing the submission
+        """
         request = self._make_request(f'/store/upload/submission/{submission_id}', method="GET")
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
     def get_submissions_for_user(self, user_id: str) -> JsonObj:
+        """
+        Get all submission for a user
+        :param user_id: user ID
+        :return: A JSON object representing the resulting list of submissions
+        """
         request = self._make_request(f'/store/upload/user/{user_id}', method="GET")
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
     def update_submission_status(self, submission_id: str, status: str) -> JsonObj:
+        """
+        Change the status of a submission
+        :param submission_id: The user defined ID of a submission
+        :param status: The new status
+        :return: A message from the server
+        """
         data = {'status': status, 'publication_date': '2020-01-01'}
         data = json.dumps(data).encode('utf-8')
 
@@ -165,12 +253,24 @@ class OCDBApi(Api):
             return json.load(response)
 
     def delete_submission(self, submission_id: str) -> JsonObj:
+        """
+        Delete a submission by the user defined ID
+        :param submission_id: Submission ID
+        :return: A message from the server
+        """
         request = self._make_request(f'/store/upload/submission/{submission_id}', method="DELETE")
 
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
     def download_submission_file(self, submission_id: str, index: int, out_fn: Optional[str]) -> str:
+        """
+        Download a Submission File by user defined submission ID and teh index of the file
+        :param submission_id: The submission ID
+        :param index: The index of the file
+        :param out_fn: An output file name
+        :return: A message
+        """
         request = self._make_request(f'/store/download/submissionfile/{submission_id}/{index}', method="GET")
 
         if not out_fn:
@@ -189,16 +289,28 @@ class OCDBApi(Api):
             return json.load(response)
 
     def delete_submission_file(self, **kwargs) -> JsonObj:
+        """
+        Delete a submission File
+        :param kwargs:
+        :return:
+        """
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
         params = urllib.parse.urlencode(kwargs)
         request = self._make_request(f'/submission?{params}', method="GET")
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def upload_submission_file(self, submission_id: str, index: int, file: str) -> JsonObj:
+    def upload_submission_file(self, submission_id: str, index: int, file_name: str) -> JsonObj:
+        """
+        Upload a submission file by user defined Submission ID and index
+        :param submission_id: Submission ID
+        :param index: Submission File index
+        :param file_name: The file name to be uploaded
+        :return: A message from the server
+        """
         form = MultiPartForm()
 
-        form.add_file(f'files', os.path.basename(file), file, mime_type="text/plain")
+        form.add_file(f'files', os.path.basename(file_name), file_name, mime_type="text/plain")
 
         data = bytes(form)
 
@@ -209,8 +321,35 @@ class OCDBApi(Api):
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def add_user(self, username: str, password: str, first_name: str, last_name: str, email: str, phone: str,
-                 roles: Sequence[str]) -> JsonObj:
+    def validate_submission_file(self, file_name: str) -> JsonObj:
+        """
+        Validate a dataset
+        :param file_name:The dataset file to be validated
+        :return: The result of the validation
+        """
+        with open(file_name) as fp:
+            dataset_json = fp.read()
+
+        send = {'data': dataset_json}
+
+        request = self._make_request('/store/upload/submission/validate', method="POST",
+                                     data=json.dumps(send).encode('utf-8'))
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+
+    def add_user(self, username: str, password: str, email: str, roles: Sequence[str], first_name: str = '',
+                 last_name: str = '', phone: str = '') -> JsonObj:
+        """
+        Add a user to the OCDB database system.
+        :param username: The user name
+        :param password: A password
+        :param first_name: The First Name of the User
+        :param last_name: The last name of the User
+        :param email: The email of the user
+        :param phone: The phone number
+        :param roles: A list of roles
+        :return: A message from the server
+        """
         data = {
             'name': username,
             'first_name': first_name,
@@ -228,28 +367,51 @@ class OCDBApi(Api):
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def delete_user(self, name: str) -> JsonObj:
-        request = self._make_request(f'/users/{name}', method="DELETE")
+    def delete_user(self, username: str) -> JsonObj:
+        """
+        delete a user
+        :param username: The user name to be deleted
+        :return: A message from  the server
+        """
+        request = self._make_request(f'/users/{username}', method="DELETE")
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def update_user(self, name: str, key: str, value: str) -> JsonObj:
-        user = self.get_user(name)
+    def update_user(self, username: str, key: str, value: str) -> JsonObj:
+        """
+        Update user info
+        :param username: The user name
+        :param key: The field to be updated
+        :param value: The value the field is to be udpated by
+        :return: A message from the server
+        """
+        user = self.get_user(username)
 
         user[key] = value
         print(user)
 
         data = json.dumps(user).encode('utf-8')
-        request = self._make_request(f'/users/{name}', data=data, method="PUT")
+        request = self._make_request(f'/users/{username}', data=data, method="PUT")
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def get_user(self, name: str) -> JsonObj:
-        request = self._make_request(f'/users/{name}', method="GET")
+    def get_user(self, username: str) -> JsonObj:
+        """
+        Get info for a user
+        :param username: User name
+        :return: A JSON representation of the user
+        """
+        request = self._make_request(f'/users/{username}', method="GET")
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def login_user(self, username: str, password: str) -> JsonObj:
+    def login_user(self, username: Optional[str], password: Optional[str]) -> JsonObj:
+        """
+        Login to teh OCDb database system
+        :param username: User name
+        :param password: Password
+        :return: A JSON representation of the user
+        """
         data = {'username': username, 'password': password}
         data = json.dumps(data).encode('utf-8')
 
@@ -263,10 +425,13 @@ class OCDBApi(Api):
             return json.load(response)
 
     def logout_user(self) -> JsonObj:
+        """
+        Logout from teh OCDB database system
+        :return: A message from the server
+        """
         cookie = OCDBApi.read_login_cookie()
         if cookie is None:
             pass
-
 
         request = self._make_request(f'/users/logout', method="GET")
 
@@ -319,6 +484,8 @@ class OCDBApi(Api):
         if cookie is not None:
             headers.update({"Cookie": cookie})
 
+        print('Connecting to', url)
+
         request = urllib.request.Request(url, data=data, headers=headers, method=method)
         request.add_header("User-Agent", USER_AGENT)
         return request
@@ -368,6 +535,7 @@ class OCDBApi(Api):
         login_info_file = os.path.join(USER_DIR, "login_info")
         if os.path.isfile(login_info_file):
             os.remove(login_info_file)
+
 
 def _split_dataset_path(dataset_path: str) -> Sequence[str]:
     path_components = dataset_path.split('/')

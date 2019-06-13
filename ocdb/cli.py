@@ -33,28 +33,27 @@ def conf(ctx, name, value):
 
 @click.command(name='upload')
 @click.argument('store_path', metavar='<store_path>')
-@click.argument('dataset_files', metavar='<dataset-file> ...', nargs=-1)
+@click.argument('dataset-files', metavar='<dataset-file> ...', nargs=-1)
 @click.option('--doc-file', '-d', 'doc_files', metavar='<doc-file>', nargs=1,
               multiple=True,
               help="Labels all subsequent files as documentation files")
 @click.option('--submission-id', '-s', 'submission_id', metavar='<submission-id>', nargs=1, help="Give submission ID")
-@click.option('--path', '-p', 'path', metavar='<path>', nargs=1, help="Give a Path")
 @click.option('--publication-date', '-pd', 'publication_date', metavar='<publication-date>', nargs=1,
               help="set date for publication")
 @click.option('--allow-publication', '-ap', 'allow_publication', metavar='<allow-publication>', is_flag=True,
               help="Specify whether you agree to publish the data")
 @click.pass_context
-def upload_submission(ctx, store_path: str, dataset_files: Sequence[str], doc_files: Sequence[str], path: str,
+def upload_submission(ctx, store_path: str, dataset_files: Sequence[str], doc_files: Sequence[str],
                       submission_id: str, publication_date: str, allow_publication: bool):
     """Upload multiple dataset and documentation files."""
     if not dataset_files:
         raise click.ClickException("At least a single <dataset-file> must be given.")
     if not submission_id:
         raise click.ClickException("Please give a submission ID.")
-    if not path:
-        raise click.ClickException("Please give a path.")
+    if not store_path:
+        raise click.ClickException("Please give a path. Format should be affiliation/cruise/experiment")
 
-    validation_results = ctx.obj.upload_submission(store_path, dataset_files, doc_files, path, submission_id,
+    validation_results = ctx.obj.upload_submission(store_path, dataset_files, doc_files, store_path, submission_id,
                                                    publication_date, allow_publication)
     _dump_json(validation_results)
 
@@ -136,13 +135,13 @@ def delete_dataset(ctx, id):
 @click.command(name="val")
 @click.argument('file', metavar='<file>')
 @click.pass_context
-def validate_dataset(ctx, file):
-    """Validate dataset <file>."""
+def validate_submission_file(ctx, file):
+    """Validate submission <file> before upload."""
 
     if not file:
         raise click.ClickException("Please give a <file>.")
 
-    validation_result = ctx.obj.validate_dataset(file)
+    validation_result = ctx.obj.validate_submission_file(file)
     _dump_json(validation_result)
 
 
@@ -186,12 +185,12 @@ def get_submission(ctx, submission_id: str):
 
 
 @click.command(name="user")
-@click.argument('user-name', metavar='<user-id>')
+@click.argument('user-name', metavar='<user-name>')
 @click.pass_context
-def get_submissions_for_user(ctx, user_id: str):
-    """Get submissions for user --user_id <user_id>."""
+def get_submissions_for_user(ctx, user_name: str):
+    """Get submissions for user --user_name <user_name>."""
 
-    result = ctx.obj.get_submissions_for_user(user_id)
+    result = ctx.obj.get_submissions_for_user(user_name)
     _dump_json(result)
 
 
@@ -296,48 +295,44 @@ def cli(ctx, server_url):
 @click.command(name="add")
 @click.option('--username', '-u', metavar='<username>', help='Username')
 @click.option('--password', '-p', metavar='<password>', help='Password')
-@click.option('--first-name', '-fn', metavar='<first_name>', help='First Name')
-@click.option('--last-name', '-ln', metavar='<last_name>', help='Last Name')
+@click.option('--first-name', '-fn', metavar='<first_name>', help='First Name', default='')
+@click.option('--last-name', '-ln', metavar='<last_name>', help='Last Name', default='')
 @click.option('--email', '-em', metavar='<email>', help='Email')
-@click.option('--phone', '-ph', metavar='<phone>', help='Phone')
-@click.option('--roles', '-r', metavar='<roles>', help='Roles',  multiple=True)
+@click.option('--phone', '-ph', metavar='<phone>', help='Phone', default='')
+@click.option('--roles', '-r', metavar='<roles>', help='Roles', multiple=True)
 @click.pass_context
-def add_user(ctx, username: str,  password: str, first_name: str, last_name: str, email: str, phone: str,
+def add_user(ctx, username: str, password: str, first_name: str, last_name: str, email: str, phone: str,
              roles: Sequence[str]):
     """Add a user"""
 
     if not username:
-        raise click.ClickException("Please give a <username>.")
+        raise click.ClickException("Please give --username <username>.")
     if not password:
-        raise click.ClickException("Please give a <password>.")
-    if not first_name:
-        raise click.ClickException("Please give a <first-name>.")
-    if not last_name:
-        raise click.ClickException("Please give a <last-name>.")
+        raise click.ClickException("Please give --password <password>.")
     if not email:
-        raise click.ClickException("Please give a <email>.")
-    if not phone:
-        raise click.ClickException("Please give a <phone>.")
+        raise click.ClickException("Please give a --email <email>.")
     if not roles or len(roles) == 0:
-        raise click.ClickException("Please give at least one <role>")
+        raise click.ClickException("Please give -r <role1> [-r <role2>]")
 
-    result = ctx.obj.add_user(username,  password, first_name, last_name, email, phone, roles)
+    result = ctx.obj.add_user(username=username, password=password, first_name=first_name,
+                              last_name=last_name, email=email, phone=phone, roles=roles)
     _dump_json(result)
 
 
 @click.command(name="update")
 @click.option('--username', '-u', metavar='<username>', help='Username')
 @click.option('--key', '-k', metavar='<key>', help='Key (e.g. name)')
-@click.option('--value', '-v', metavar='<value>', help='Value for the field')
+@click.option('--value', '-v', metavar='<value>', help='Value for the field. Can be username, password, first_name, '
+                                                       'last_name, email, phone, roles', )
 @click.pass_context
 def update_user(ctx, username: str, key: str, value: str):
     """Update an existing user"""
     if not username:
-        raise click.ClickException("Please give a <submission-id>.")
+        raise click.ClickException("Please give --username <username>.")
     if not key:
-        raise click.ClickException("Please give a <key>.")
+        raise click.ClickException("Please give --key <key>.")
     if not value:
-        raise click.ClickException("Please give a <value>.")
+        raise click.ClickException("Please give --value <value>.")
 
     result = ctx.obj.update_user(username, key, value)
     _dump_json(result)
@@ -358,8 +353,6 @@ def password_user(ctx, username: str, old_password: str, password: str):
     if not old_password:
         raise click.ClickException("Please give your OLD <password>.")
 
-    #login_user(username, old_password)
-
     result = ctx.obj.update_user(username, 'password', password)
     _dump_json(result)
 
@@ -370,10 +363,11 @@ def password_user(ctx, username: str, old_password: str, password: str):
 @click.pass_context
 def login_user(ctx, username: str, password: str):
     """Login a user"""
+    import getpass
     if not username:
         username = input("User name:")
     if not password:
-        password = input("Password:")
+        password = getpass.getpass("Password:")
 
     result = ctx.obj.login_user(username, password)
     _dump_json(result)
@@ -446,7 +440,7 @@ def user():
 
 cli.add_command(conf)
 cli.add_command(ds)
-cli.add_command(df)
+# cli.add_command(df)
 cli.add_command(sbm)
 cli.add_command(sbmfile)
 cli.add_command(user)
@@ -455,8 +449,11 @@ cli.add_command(show_license)
 ds.add_command(find_datasets)
 ds.add_command(download_datasets)
 ds.add_command(get_dataset)
+# ds.add_command(add_dataset)
+# ds.add_command(delete_dataset)
+# ds.add_command(update_dataset)
+# ds.add_command(list_datasets)
 ds.add_command(delete_dataset)
-ds.add_command(validate_dataset)
 ds.add_command(list_datasets)
 ds.add_command(get_datasets_by_submission)
 ds.add_command(delete_datasets_by_submission)
