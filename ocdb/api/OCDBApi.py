@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import shutil
@@ -70,9 +71,12 @@ class OCDBApi(Api):
         form = MultiPartForm()
         form.add_field('path', store_path)
         form.add_field('submissionid', submission_id)
+        if publication_date is None:
+            publication_date = '1970-01-01'
         form.add_field('publicationdate', publication_date)
-        form.add_field('allowpublication', str(allow_publication))
-        form.add_field('userid', str(1))
+        if allow_publication is not None:
+            form.add_field('allowpublication', str(allow_publication))
+        #form.add_field('userid', str(1))
 
         for dataset_file in dataset_files:
             form.add_file(f'datasetfiles', os.path.basename(dataset_file), dataset_file, mime_type="text/plain")

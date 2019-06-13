@@ -53,8 +53,9 @@ def upload_submission(ctx, store_path: str, dataset_files: Sequence[str], doc_fi
     if not store_path:
         raise click.ClickException("Please give a path. Format should be affiliation/cruise/experiment")
 
-    validation_results = ctx.obj.upload_submission(store_path, dataset_files, doc_files, store_path, submission_id,
-                                                   publication_date, allow_publication)
+    validation_results = ctx.obj.upload_submission(store_path=store_path, dataset_files=dataset_files,
+                                                   doc_files=doc_files, submission_id=submission_id,
+                                                   publication_date=publication_date, allow_publication=allow_publication)
     _dump_json(validation_results)
 
 
