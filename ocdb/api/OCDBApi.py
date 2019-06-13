@@ -165,7 +165,7 @@ class OCDBApi(Api):
         df.columns = ds['attributes']
         return df
 
-    def get_dataset(self, dataset_id: str, fmt: str) -> Union[JsonObj, pd.DataFrame]:
+    def get_dataset(self, dataset_id: str, fmt: str = 'json') -> Union[JsonObj, pd.DataFrame]:
         """
         Get a dataset from the Search Database by dataset ID.
         :param dataset_id: ID of teh dataset
@@ -178,7 +178,7 @@ class OCDBApi(Api):
             if fmt == 'pandas':
                 return OCDBApi._make_pandas_from_dataset(js)
             else:
-                return json.load(response)
+                return js
 
     def get_dataset_by_name(self, dataset_path: str, fmt: str) -> Union[JsonObj, pd.DataFrame]:
         path_components = _split_dataset_path(dataset_path)
