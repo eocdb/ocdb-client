@@ -209,7 +209,7 @@ def delete_submission(ctx, submission_id: str):
 @click.option('--status', '-st', metavar='<status>', help='Specify new status')
 @click.pass_context
 def update_submission_status(ctx, submission_id: str, status: str):
-    """Update submission status --submission_id <submission_id> --status <status>."""
+    """Update submission status --submission-id <submission_id> --status <status>."""
 
     if not submission_id:
         raise click.ClickException("Please give a <submission-id>.")
@@ -222,7 +222,7 @@ def update_submission_status(ctx, submission_id: str, status: str):
 
 @click.command(name="download")
 @click.option('--submission-id', '-s', metavar='<submission-id>', help='Specify submission ID')
-@click.option('--index', '-s', metavar='<index>', help='Specify submission file index')
+@click.option('--index', '-i', metavar='<index>', help='Specify submission file index')
 @click.option('--out-file', '-o', metavar='<out-file>', help='Specify name for the outfile (zip)')
 @click.pass_context
 def download_submission_file(ctx, submission_id: str, index: int, out_file: str):
@@ -464,7 +464,6 @@ sbm.add_command(get_submission)
 sbm.add_command(get_submissions_for_user)
 sbm.add_command(delete_submission)
 
-sbmfile.add_command(get_submission_file)
 sbmfile.add_command(download_submission_file)
 sbmfile.add_command(upload_submission_file)
 
