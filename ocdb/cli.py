@@ -94,18 +94,30 @@ def get_dataset(ctx, dataset_id: str, dataset_path: str):
 @click.command(name='find')
 @click.option('--expr', metavar='<expr>',
               help="Query expression")
+@click.option('--query', metavar='<query>', type=str, multiple=True,
+              help='Query the dataset attributes. Possible attributes are:')
 @click.option('--offset', metavar='<offset>', type=int, default=1,
               help="Results offset. Offset of first result is 1.")
 @click.option('--count', metavar='<count>', type=int, default=1000,
               help="Maximum number of results.")
 @click.pass_context
-def find_datasets(ctx, expr, offset, count):
+def find_datasets(ctx, expr, offset, count, query):
     """Find datasets using query expression <expr>."""
 
-    if not expr:
-        raise click.ClickException("Please give an <expr>.")
+    if not expr and not query:
+        raise click.ClickException("Please give either an <expr> or a <query>.")
 
-    dataset_refs = ctx.obj.find_datasets(expr=expr, offset=offset, count=count)
+    kwargs = {'expr': expr, 'offset': offset, 'count': count}
+
+    for q in query:
+        buffer = q.split('=')
+        if len(buffer) == 2:
+            buffer = q.split('=')
+            kwargs[buffer[0]] = buffer[1]
+        else:
+            raise click.ClickException("Please use syntax --query field1=value1 --query field2=value2")
+
+    dataset_refs = ctx.obj.find_datasets(**kwargs)
     _dump_json(dataset_refs)
 
 
