@@ -13,6 +13,16 @@
     python setup.py develop
 ```
 
+## Update
+
+```bash
+    cd eocdb-client
+    source activate eocdb-client-dev
+    git pull
+    python setup.py develop
+```
+
+
 
 ## Getting Started
 
