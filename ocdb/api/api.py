@@ -107,6 +107,10 @@ class Api(metaclass=ABCMeta):
         """Get user info by user name"""
 
     @abstractmethod
+    def change_user_login(self, username: str, password: str, new_password: str) -> JsonObj:
+        """Change user login (password)"""
+
+    @abstractmethod
     def login_user(self, username: Optional[str], password: Optional[str]) -> JsonObj:
         """Log in with username and password"""
 

@@ -1,4 +1,3 @@
-import datetime
 import json
 import os
 import shutil
@@ -76,7 +75,7 @@ class OCDBApi(Api):
         form.add_field('publicationdate', publication_date)
         if allow_publication is not None:
             form.add_field('allowpublication', str(allow_publication))
-        #form.add_field('userid', str(1))
+        # form.add_field('userid', str(1))
 
         for dataset_file in dataset_files:
             form.add_file(f'datasetfiles', os.path.basename(dataset_file), dataset_file, mime_type="text/plain")
@@ -215,6 +214,7 @@ class OCDBApi(Api):
         :return: A JSON object containing a list of datasets found in the search database
         """
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
+        kwargs['geojson'] = True
         params = urllib.parse.urlencode(kwargs)
         request = self._make_request(f'/datasets?{params}', method="GET")
         with urllib.request.urlopen(request) as response:
@@ -230,7 +230,7 @@ class OCDBApi(Api):
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def get_submissions_for_user(self) -> JsonObj:
+    def get_submissions_for_user(self, user_id: str) -> JsonObj:
         """
         Get all submission for a user
         :param user_id: user ID
@@ -392,10 +392,26 @@ class OCDBApi(Api):
         user = self.get_user(username)
 
         user[key] = value
-        print(user)
 
         data = json.dumps(user).encode('utf-8')
         request = self._make_request(f'/users/{username}', data=data, method="PUT")
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+
+    def change_user_login(self, username: str, password: str, new_password: str) -> JsonObj:
+        """
+        Update user info
+        :param new_password: New Password
+        :param password: Old Password if user changes own password
+        :param username: The user name if admin changes for another user
+        :return: A message from the server
+        """
+
+        data = json.dumps({'username': username, 'oldpassword': password, 'newpassword1': new_password,
+                           'newpassword2': new_password}).encode(
+            'utf-8')
+
+        request = self._make_request(f'/users/login', data=data, method="PUT")
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
@@ -409,9 +425,27 @@ class OCDBApi(Api):
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
+    def whoami_user(self) -> JsonObj:
+        """
+        Who am I
+        :return: The user name
+        """
+        request = self._make_request(f'/users/login', method="GET")
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+
+    def list_user(self) -> JsonObj:
+        """
+        List user names
+        :return: The user name list
+        """
+        request = self._make_request(f'/users', method="GET")
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+
     def login_user(self, username: Optional[str], password: Optional[str]) -> JsonObj:
         """
-        Login to teh OCDb database system
+        Login to the OCDB database system
         :param username: User name
         :param password: Password
         :return: A JSON representation of the user

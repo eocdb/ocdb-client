@@ -55,7 +55,8 @@ def upload_submission(ctx, store_path: str, dataset_files: Sequence[str], doc_fi
 
     validation_results = ctx.obj.upload_submission(store_path=store_path, dataset_files=dataset_files,
                                                    doc_files=doc_files, submission_id=submission_id,
-                                                   publication_date=publication_date, allow_publication=allow_publication)
+                                                   publication_date=publication_date,
+                                                   allow_publication=allow_publication)
     _dump_json(validation_results)
 
 
@@ -94,18 +95,31 @@ def get_dataset(ctx, dataset_id: str, dataset_path: str):
 @click.command(name='find')
 @click.option('--expr', metavar='<expr>',
               help="Query expression")
+@click.option('--query', metavar='<query>', type=str, multiple=True,
+              help='Query the dataset attributes --query <attribute>=<value>. Possible attributes are: '
+                   'path, submission_id, user_id, pgroup, pname, pmode')
 @click.option('--offset', metavar='<offset>', type=int, default=1,
               help="Results offset. Offset of first result is 1.")
 @click.option('--count', metavar='<count>', type=int, default=1000,
               help="Maximum number of results.")
 @click.pass_context
-def find_datasets(ctx, expr, offset, count):
+def find_datasets(ctx, expr, offset, count, query):
     """Find datasets using query expression <expr>."""
 
-    if not expr:
-        raise click.ClickException("Please give an <expr>.")
+    if not expr and not query:
+        raise click.ClickException("Please give either an <expr> or a <query>.")
 
-    dataset_refs = ctx.obj.find_datasets(expr=expr, offset=offset, count=count)
+    kwargs = {'expr': expr, 'offset': offset, 'count': count}
+
+    for q in query:
+        buffer = q.split('=')
+        if len(buffer) == 2:
+            buffer = q.split('=')
+            kwargs[buffer[0]] = buffer[1]
+        else:
+            raise click.ClickException("Please use syntax --query field1=value1 --query field2=value2")
+
+    dataset_refs = ctx.obj.find_datasets(**kwargs)
     _dump_json(dataset_refs)
 
 
@@ -338,38 +352,63 @@ def update_user(ctx, username: str, key: str, value: str):
     _dump_json(result)
 
 
-@click.command(name="password")
-@click.option('--username', '-u', metavar='<username>', help='Username')
-@click.option('--old-password', '-op', metavar='<old-password>', help='Old Password')
-@click.option('--password', '-p', metavar='<password>', help='New Password')
+@click.command(name="pwd")
+@click.option('--username', '-u', metavar='<username>', help='Username', prompt=True)
+@click.option('--password', '-p', metavar='<password>', help='New Password',
+              prompt=True, hide_input=True, confirmation_prompt=True)
 @click.pass_context
-def password_user(ctx, username: str, old_password: str, password: str):
+def change_login(ctx, username: str, password: str):
     """Set the password for an existing user"""
 
     if not username:
-        raise click.ClickException("Please give a <submission-id>.")
+        raise click.ClickException("Please give a <user name>.")
+    if not password:
+        raise click.ClickException("Please give a NEW <password>.")
+
+    result = ctx.obj.change_user_login(username=username, password=None, new_password=password)
+    _dump_json(result)
+
+
+@click.command(name="ownpwd")
+@click.option('--old-password', '-op', metavar='<old-password>', help='Old Password',
+              prompt=True, hide_input=True)
+@click.option('--password', '-p', metavar='<password>', help='New Password',
+              prompt=True, hide_input=True, confirmation_prompt=True)
+@click.pass_context
+def change_own_login(ctx, old_password: str, password: str):
+    """Set the password for an existing user"""
     if not password:
         raise click.ClickException("Please give a NEW <password>.")
     if not old_password:
         raise click.ClickException("Please give your OLD <password>.")
 
-    result = ctx.obj.update_user(username, 'password', password)
+    result = ctx.obj.change_user_login(username=None, password=old_password, new_password=password)
     _dump_json(result)
 
 
 @click.command(name="login")
-@click.option('--username', '-u', metavar='<username>', help='Username')
-@click.option('--password', '-p', metavar='<password>', help='Password')
+@click.option('--username', '-u', metavar='<username>', help='Username', prompt=True)
+@click.option('--password', '-p', metavar='<password>', help='Password', prompt=True, hide_input=True)
 @click.pass_context
 def login_user(ctx, username: str, password: str):
     """Login a user"""
-    import getpass
-    if not username:
-        username = input("User name:")
-    if not password:
-        password = getpass.getpass("Password:")
-
     result = ctx.obj.login_user(username, password)
+    _dump_json(result)
+
+
+@click.command(name="whoami")
+@click.pass_context
+def whoami_user(ctx):
+    """Who am I"""
+    result = ctx.obj.whoami_user()
+    _dump_json(result)
+
+
+@click.command(name="list")
+@click.pass_context
+def list_user(ctx):
+    """Who am I"""
+    result = ctx.obj.list_user()
     _dump_json(result)
 
 
@@ -469,8 +508,11 @@ sbmfile.add_command(upload_submission_file)
 
 user.add_command(add_user)
 user.add_command(update_user)
-user.add_command(password_user)
+user.add_command(change_own_login)
+user.add_command(change_login)
 user.add_command(get_user)
 user.add_command(delete_user)
+user.add_command(whoami_user)
+user.add_command(list_user)
 user.add_command(login_user)
 user.add_command(logout_user)
