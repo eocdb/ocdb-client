@@ -1,4 +1,4 @@
-## CHANGES in 0.2:
+## CHANGES in v0.2:
 
 - Pushed project to gitlab.eumetsat.int
 - Updated URLs in README to https:ocdb.eumetsat.int
