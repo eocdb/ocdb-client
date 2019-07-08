@@ -6,10 +6,12 @@
 ## Installation
 
 ```bash
-    git clone https://github.com/bcdev/eocdb-client
+    git clone https://github.com/eocdb/eocdb-client
+    # OR
+    git clone https://gitlab.eumetsat.int/OC/External/OC-DB/ocdb-client.git
     cd eocdb-client
     conda env create
-    source activate eocdb-client-dev
+    source activate ocdb
     python setup.py develop
 ```
 
@@ -17,7 +19,7 @@
 
 ```bash
     cd eocdb-client
-    source activate eocdb-client-dev
+    source activate ocdb
     git pull
     python setup.py develop
 ```
@@ -33,28 +35,20 @@ The default address is ```http://194.76.223.169```.
 
 ```bash
 
-eocdb-cli conf server_url http://194.76.223.169
+eocdb-cli conf server_url https://ocdb-eumetsat.int
 
 ```
 
 
 ```python
 
-from eocdb_client.api.OCDBApi import new_api
+from ocdb_client.api.OCDBApi import new_api
 
 api = new_api()
 
 api.config
 
-#Out[11]: {'server_url': 'http://eocdb-server:4000'}
-
-
-api.server_url='http://localhost:4000'
-
-api.config
-
-#Out[18]: {'server_url': 'http://localhost:4000'}
-
+#Out[11]: {'server_url': 'https://ocdb-eumetsat.int'}
 
 ```
 
