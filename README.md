@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/bcdev/eocdb-client.svg?branch=master)](https://travis-ci.org/bcdev/eocdb-client)
+[![Build Status](https://travis-ci.org/bcdev/ocdb-client.svg?branch=master)](https://travis-ci.org/bcdev/ocdb-client)
 
 # Copernicus Ocean Colour Database (OCDB) Python Client
 
@@ -6,10 +6,10 @@
 ## Installation
 
 ```bash
-    git clone https://github.com/eocdb/eocdb-client
+    git clone https://github.com/eocdb/ocdb-client
     # OR
     git clone https://gitlab.eumetsat.int/OC/External/OC-DB/ocdb-client.git
-    cd eocdb-client
+    cd ocdb-client
     conda env create
     source activate ocdb
     python setup.py develop
@@ -18,7 +18,7 @@
 ## Update
 
 ```bash
-    cd eocdb-client
+    cd ocdb-client
     source activate ocdb
     git pull
     python setup.py develop
@@ -35,7 +35,7 @@ The default address is ```http://194.76.223.169```.
 
 ```bash
 
-eocdb-cli conf server_url https://ocdb-eumetsat.int
+ocdb-cli conf server_url https://ocdb-eumetsat.int
 
 ```
 
@@ -65,7 +65,7 @@ that include the name Colleen in the investigators meta field.
 
 ```bash
 
-eocdb-cli ds find --expr "investigators: *Colleen*"
+ocdb-cli ds find --expr "investigators: *Colleen*"
 
 ```
 
@@ -95,7 +95,7 @@ and changes occasionally.
 
 ```bash
 
-eocdb-cli user login --user scott --password tiger
+ocdb-cli user login --user scott --password tiger
 
 ```
 
@@ -113,7 +113,7 @@ To add a user, specify the required user information
 
 ```bash
 
-eocdb-cli user add -u admin -p admin -fn Submit -ln Submit -em jj -ph hh -r admin
+ocdb-cli user add -u admin -p admin -fn Submit -ln Submit -em jj -ph hh -r admin
 
 ```
 
@@ -129,7 +129,7 @@ __Get User__:
 
 ```bash
 
-eocdb-cli user get --user scott --api-key <your key>
+ocdb-cli user get --user scott --api-key <your key>
 
 ```
 
@@ -145,7 +145,7 @@ __Delete User__:
 
 ```bash
 
-eocdb-cli user delete --user scott --api-key <your key>
+ocdb-cli user delete --user scott --api-key <your key>
 
 ```
 
@@ -160,13 +160,13 @@ __Update User__:
 
 ```bash
 
-eocdb-cli user update --key last_name --value <your value>
+ocdb-cli user update --key last_name --value <your value>
 
 ```
 
 ```python
 
-from eocdb_client.api.OCDBApi import new_api
+from ocdb_client.api.OCDBApi import new_api
 
 api = new_api()
 
@@ -182,7 +182,7 @@ __Get Submission__:
 
 ```bash
 
-eocdb-cli sbm get --submission-id <submission-id>
+ocdb-cli sbm get --submission-id <submission-id>
 
 ```
 
@@ -199,7 +199,7 @@ __Get Submissions for a specific User__:
 
 ```bash
 
-eocdb-cli sbm user --user-id <user-id>
+ocdb-cli sbm user --user-id <user-id>
 
 ```
 
@@ -216,7 +216,7 @@ __Delete Submission__:
 
 ```bash
 
-eocdb-cli sbm delete --submission-id <submission-id>
+ocdb-cli sbm delete --submission-id <submission-id>
 
 ```
 
@@ -233,7 +233,7 @@ __Update Submission Status__:
 
 ```bash
 
-eocdb-cli sbm status --submission-id <submission-id> --status <status>
+ocdb-cli sbm status --submission-id <submission-id> --status <status>
 
 ```
 
@@ -250,7 +250,7 @@ __Download Submission File__:
 
 ```bash
 
-eocdb-cli sbm download --submission-id <submission-id> --index <index>
+ocdb-cli sbm download --submission-id <submission-id> --index <index>
 
 ```
 
@@ -267,7 +267,7 @@ __Upload Submission File__:
 
 ```bash
 
-eocdb-cli sbm upl --submission-id <submission-id> --index <index> --file <file>
+ocdb-cli sbm upl --submission-id <submission-id> --index <index> --file <file>
 
 ```
 
@@ -286,7 +286,7 @@ __Get License__
 
 ```bash
 
-eocdb-cli lic
+ocdb-cli lic
 
 ```
 
@@ -295,4 +295,4 @@ eocdb-cli lic
 
 ### Testing
 
-    $ pytest --cov=eocdb_client --cov-report html
+    $ pytest --cov=ocdb_client --cov-report html
