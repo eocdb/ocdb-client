@@ -15,7 +15,7 @@ from ..version import NAME, VERSION, DESCRIPTION
 
 USER_AGENT = f"{NAME} / {VERSION} {DESCRIPTION}"
 
-API_VERSION = "v0.1.5"
+API_VERSION = "v0.1.6"
 API_PATH_PREFIX = "/ocdb/api/" + API_VERSION
 
 USER_DIR = os.path.expanduser(os.path.join('~', '.ocdb'))
