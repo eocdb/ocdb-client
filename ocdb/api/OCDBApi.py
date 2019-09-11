@@ -230,13 +230,18 @@ class OCDBApi(Api):
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def get_submissions_for_user(self, user_id: str) -> JsonObj:
+    def get_submissions_for_user(self, user_name: Optional[str]) -> JsonObj:
         """
         Get all submission for a user
-        :param user_id: user ID
+        :param user_name: User Name
         :return: A JSON object representing the resulting list of submissions
         """
-        request = self._make_request(f'/store/upload/user', method="GET")
+
+        path = '/store/upload/user'
+        if user_name:
+            path = f'/store/upload/user/{user_name}'
+
+        request = self._make_request(path, method="GET")
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
