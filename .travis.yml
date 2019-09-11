@@ -30,7 +30,7 @@ install:
   - conda list
   - python setup.py install
 
-  - pytest --cov=ocdb --cov-report html
+  #- pytest --cov=ocdb --cov-report html
 
 # oc-215c2a0e-3567-4e37-812b-65c2dd7cc57d
 after_success:
