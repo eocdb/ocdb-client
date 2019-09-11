@@ -10,6 +10,10 @@ from ocdb.api.OCDBApi import OCDBApi
 from ocdb.configstore import MemConfigStore
 
 
+TEST_URL = "http://localhost:4000/"
+TEST_VERSION = 'v0.1.6'
+
+
 class ClientTest(unittest.TestCase, metaclass=ABCMeta):
 
     def setUp(self):
@@ -23,7 +27,7 @@ class ClientTest(unittest.TestCase, metaclass=ABCMeta):
 
     @property
     def api_kwargs(self) -> Dict:
-        return dict(config_store=MemConfigStore(server_url="https://ocdb.eumetsat.int/"))
+        return dict(config_store=MemConfigStore(server_url=TEST_URL))
 
     @classmethod
     def get_input_base_dir(cls) -> str:
