@@ -54,6 +54,8 @@ class CliDatasetTest(CliTest):
         expected_response = {
             'chl-s170604w.sub': {'issues': [], 'status': 'OK'},
         }
+
+        httpretty.enable()
         httpretty.register_uri(httpretty.POST,
                                "http://test-server/eocdb/api/v0.1.0/datasets/validate",
                                status=200,
