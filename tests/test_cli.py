@@ -59,7 +59,7 @@ class CliDatasetTest(CliTest):
                                status=200,
                                body=json.dumps(expected_response).encode("utf-8"))
         dataset_file = self.get_input_path("chl", "chl-s170604w.sub")
-        result = self.invoke_cli(["ds", "val", dataset_file])
+        result = self.invoke_cli(["sbmfile", "val", dataset_file])
         self.assertEqual('{\n'
                          '  "chl-s170604w.sub": {\n'
                          '    "issues": [],\n'

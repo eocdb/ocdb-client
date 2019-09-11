@@ -432,6 +432,7 @@ sbm.add_command(delete_submission)
 
 sbmfile.add_command(download_submission_file)
 sbmfile.add_command(upload_submission_file)
+sbmfile.add_command(validate_submission_file)
 
 user.add_command(add_user)
 user.add_command(update_user)
