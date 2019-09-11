@@ -1,3 +1,5 @@
+import sys
+import ssl
 import json
 import os
 import shutil
@@ -11,20 +13,17 @@ import pandas as pd
 from .api import Api, Config, JsonObj
 from .mpf import MultiPartForm
 from ..configstore import ConfigStore, JsonConfigStore
-from ..version import NAME, VERSION, DESCRIPTION
+from ..version import NAME, VERSION, DESCRIPTION, API_VERSION
 
 USER_AGENT = f"{NAME} / {VERSION} {DESCRIPTION}"
 
-API_VERSION = "v0.1.6"
 API_PATH_PREFIX = "/ocdb/api/" + API_VERSION
 
 USER_DIR = os.path.expanduser(os.path.join('~', '.ocdb'))
 DEFAULT_CONFIG_FILE_NAME = 'ocdb-client.json'
 DEFAULT_CONFIG_FILE = os.path.join(USER_DIR, DEFAULT_CONFIG_FILE_NAME)
 
-VALID_CONFIG_PARAM_NAMES = {'server_url'}
-
-import ssl
+VALID_CONFIG_PARAM_NAMES = {'server_url', 'traceback'}
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -51,6 +50,10 @@ class OCDBApi(Api):
         self._config = None
         if server_url is not None:
             self.server_url = server_url
+
+        traceback = self.get_config_param('traceback')
+        if traceback is not None:
+            sys.tracebacklimit = int(traceback)
 
     # Remote dataset access
 
