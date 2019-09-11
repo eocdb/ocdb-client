@@ -1,3 +1,4 @@
+import sys
 import json
 from typing import Sequence, List
 
@@ -5,6 +6,8 @@ import click
 
 from .api import JsonObj
 from .version import VERSION, LICENSE_TEXT
+
+sys.tracebacklimit = 0
 
 
 def _dump_json(obj: JsonObj):
