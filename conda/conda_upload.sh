@@ -1,6 +1,6 @@
 # Only need to change these two variables
-PKG_NAME=ocdb
-USER=ocdb-client
+PKG_NAME=ocdb-client
+USER=ocdb
 
 mkdir ~/conda-bld
 conda config --set anaconda_upload no

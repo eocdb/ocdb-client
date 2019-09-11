@@ -19,7 +19,7 @@ class CliTest(ClientTest, metaclass=ABCMeta):
         return runner.invoke(cli, args, obj=self.api)
 
 
-@unittest.skip('httpretty needs work')
+#@unittest.skip('httpretty needs work')
 class CliDatasetTest(CliTest):
 
 # @todo 1 tb/tb fails - correct later 2019-04-24
@@ -50,6 +50,7 @@ class CliDatasetTest(CliTest):
     #     self.assertEqual("Error: At least a single <dataset-file> must be given.\n", result.output)
     #     self.assertEqual(1, result.exit_code)
 
+    @httpretty.httprettified
     def test_ds_validate(self):
         expected_response = {
             'chl-s170604w.sub': {'issues': [], 'status': 'OK'},
