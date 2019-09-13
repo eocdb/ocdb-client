@@ -18,7 +18,7 @@ class ClientTest(unittest.TestCase, metaclass=ABCMeta):
 
     def setUp(self):
         warnings.filterwarnings("ignore", category=ResourceWarning, message="unclosed.*")
-        os.environ['OCDB_SERVER_URL'] = 'http://test-server'
+        os.environ['OCDB_SERVER_URL'] = TEST_URL
 
         self.api = OCDBApi(**self.api_kwargs)
         httpretty.enable()
