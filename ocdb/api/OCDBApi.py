@@ -55,6 +55,8 @@ class OCDBApi(Api):
         if traceback is not None:
             sys.tracebacklimit = int(traceback)
 
+        self.verbose = False
+
     # Remote dataset access
 
     def upload_submission(self, store_path: str, dataset_files: Sequence[str], doc_files: Sequence[str],
@@ -497,6 +499,7 @@ class OCDBApi(Api):
     def get_config_param(self, name: str, default: Any = None) -> Optional[Any]:
         """ Get the value of configuration parameter with given *name*. """
         self._ensure_config_initialized()
+
         return self._config.get(name, default)
 
     def set_config_param(self, name: str, value: Optional[Any], write: bool = False):
@@ -530,7 +533,8 @@ class OCDBApi(Api):
         if cookie is not None:
             headers.update({"Cookie": cookie})
 
-        print('Connecting to', url)
+        if self.verbose:
+            print('Connecting to', url)
 
         request = urllib.request.Request(url, data=data, headers=headers, method=method)
         request.add_header("User-Agent", USER_AGENT)

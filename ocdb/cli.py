@@ -256,13 +256,18 @@ def show_license():
 @click.group()
 @click.version_option(VERSION)
 @click.option('--server', 'server_url', metavar='<url>', envvar='OCDB_SERVER_URL', help='OCDB Server URL.')
+@click.option('--verbose', '-v', metavar='<verbose>', is_flag=True, help='OCDB client verbose reporting',
+              required=False)
 @click.pass_context
-def cli(ctx, server_url):
+def cli(ctx, server_url: str, verbose: bool):
     """
     EUMETSAT Ocean Color In-Situ Database Client.
     """
     if server_url is not None:
         ctx.obj.server_url = server_url
+
+    if verbose is not None:
+        ctx.obj.verbose = verbose
 
 
 @click.command(name="add")
