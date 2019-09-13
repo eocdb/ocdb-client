@@ -28,7 +28,7 @@ class CliDatasetTest(CliTest):
             'chl-s170604w.sub': {'issues': [], 'status': 'OK'},
         }
         httpretty.register_uri(httpretty.POST,
-                               f"{TEST_URL}/eocdb/api/{TEST_API_VERSION}/store/upload",
+                               f"{TEST_URL}/ocdb/api/{TEST_API_VERSION}/store/upload",
                                status=200,
                                body=json.dumps(expected_response).encode("utf-8"))
         dataset_file = self.get_input_path("chl", "chl-s170604w.sub")
