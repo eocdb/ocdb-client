@@ -10,7 +10,7 @@ from click.testing import CliRunner
 from ocdb.cli import cli
 from ocdb.configstore import MemConfigStore
 from ocdb.version import LICENSE_TEXT
-from tests.helpers import ClientTest, TEST_URL, TEST_VERSION
+from tests.helpers import ClientTest, TEST_URL, TEST_API_VERSION
 
 
 class CliTest(ClientTest, metaclass=ABCMeta):
@@ -28,7 +28,7 @@ class CliDatasetTest(CliTest):
             'chl-s170604w.sub': {'issues': [], 'status': 'OK'},
         }
         httpretty.register_uri(httpretty.POST,
-                               f"{TEST_URL}/eocdb/api/{TEST_VERSION}/store/upload",
+                               f"{TEST_URL}/eocdb/api/{TEST_API_VERSION}/store/upload",
                                status=200,
                                body=json.dumps(expected_response).encode("utf-8"))
         dataset_file = self.get_input_path("chl", "chl-s170604w.sub")
@@ -56,7 +56,7 @@ class CliDatasetTest(CliTest):
         }
 
         httpretty.register_uri(httpretty.POST,
-                               f"{TEST_URL}/ocdb/api/{TEST_VERSION}/store/upload/submission/validate",
+                               f"{TEST_URL}/ocdb/api/{TEST_API_VERSION}/store/upload/submission/validate",
                                status=200,
                                body=json.dumps(expected_response).encode("utf-8"))
         dataset_file = self.get_input_path("chl", "chl-s170604w.sub")
@@ -72,7 +72,7 @@ class CliDatasetTest(CliTest):
 
     def test_ds_del(self):
         httpretty.register_uri(httpretty.DELETE,
-                               f"{TEST_URL}/ocdb/api/{TEST_VERSION}/datasets/a298f4576e2",
+                               f"{TEST_URL}/ocdb/api/{TEST_API_VERSION}/datasets/a298f4576e2",
                                status=200)
         result = self.invoke_cli(["ds", "del", "a298f4576e2"])
         self.assertEqual("", result.output)
@@ -108,7 +108,7 @@ class CliDatasetTest(CliTest):
                            '}\n')
 
         httpretty.register_uri(httpretty.GET,
-                               f"{TEST_URL}/ocdb/api/{TEST_VERSION}/datasets/34986752749",
+                               f"{TEST_URL}/ocdb/api/{TEST_API_VERSION}/datasets/34986752749",
                                status=200,
                                body=json.dumps(expected_response).encode("utf-8"))
         result = self.invoke_cli(["ds", "get", "--id", "34986752749"])
@@ -129,7 +129,7 @@ class CliDatasetTest(CliTest):
             ]
         }
         httpretty.register_uri(httpretty.GET,
-                               f"{TEST_URL}/ocdb/api/{TEST_VERSION}/datasets/BIGELOW/BALCH/gnats",
+                               f"{TEST_URL}/ocdb/api/{TEST_API_VERSION}/datasets/BIGELOW/BALCH/gnats",
                                status=200,
                                body=json.dumps(expected_response).encode("utf-8"))
         result = self.invoke_cli(["ds", "list", "BIGELOW/BALCH/gnats"])
@@ -164,7 +164,7 @@ class CliDatasetTest(CliTest):
             ]
         }
         httpretty.register_uri(httpretty.GET,
-                               f"{TEST_URL}/ocdb/api/{TEST_VERSION}/datasets?expr=metadata.cruise:gnats",
+                               f"{TEST_URL}/ocdb/api/{TEST_API_VERSION}/datasets?expr=metadata.cruise:gnats",
                                status=200,
                                body=json.dumps(expected_response).encode("utf-8"))
         result = self.invoke_cli(["ds", "find", "--expr=metadata.cruise:gnats"])

@@ -8,10 +8,10 @@ import httpretty
 
 from ocdb.api.OCDBApi import OCDBApi
 from ocdb.configstore import MemConfigStore
-
+from ocdb.version import API_VERSION
 
 TEST_URL = "http://test-server"
-TEST_VERSION = 'v0.1.6'
+TEST_API_VERSION = API_VERSION
 
 
 class ClientTest(unittest.TestCase, metaclass=ABCMeta):

@@ -8,7 +8,7 @@ import httpretty
 
 from ocdb.api.OCDBApi import OCDBApi, USER_DIR
 from ocdb.configstore import MemConfigStore
-from tests.helpers import ClientTest, TEST_URL, TEST_VERSION
+from tests.helpers import ClientTest, TEST_URL, TEST_API_VERSION
 
 
 class ApiTest(ClientTest, metaclass=ABCMeta):
@@ -56,7 +56,7 @@ class DatasetsApiTest(ApiTest):
             ]
         }
 
-        url = TEST_URL + "/ocdb/api/" + TEST_VERSION + "/datasets?expr=metadata.cruise%3Agnats&geojson=True"
+        url = TEST_URL + "/ocdb/api/" + TEST_API_VERSION + "/datasets?expr=metadata.cruise%3Agnats&geojson=True"
         httpretty.register_uri(httpretty.GET,
                                url,
                                status=200,
@@ -67,31 +67,31 @@ class DatasetsApiTest(ApiTest):
 
     def test_validate_dataset(self):
         httpretty.register_uri(httpretty.POST,
-                               TEST_URL + "/ocdb/api/" + TEST_VERSION + "/store/upload/submission/validate",
+                               TEST_URL + "/ocdb/api/" + TEST_API_VERSION + "/store/upload/submission/validate",
                                status=200)
         self.api.validate_submission_file(self.get_input_path("chl", "chl-s170604w.sub"))
 
     def test_add_datasets(self):
         httpretty.register_uri(httpretty.PUT,
-                               TEST_URL + "/ocdb/api/" + TEST_VERSION + "/datasets",
+                               TEST_URL + "/ocdb/api/" + TEST_API_VERSION + "/datasets",
                                status=200)
         self.api.add_dataset(self.get_input_path("chl", "chl-s170604w.sub"))
 
     def test_update_datasets(self):
         httpretty.register_uri(httpretty.POST,
-                               TEST_URL + "/ocdb/api/" + TEST_VERSION + "/datasets",
+                               TEST_URL + "/ocdb/api/" + TEST_API_VERSION + "/datasets",
                                status=200)
         self.api.update_dataset(self.get_input_path("chl", "chl-s170604w.sub"))
 
     def test_delete_datasets(self):
         httpretty.register_uri(httpretty.DELETE,
-                               TEST_URL + "/ocdb/api/" + TEST_VERSION + "/datasets/3",
+                               TEST_URL + "/ocdb/api/" + TEST_API_VERSION + "/datasets/3",
                                status=200)
         self.api.delete_dataset(dataset_id="3")
 
         # Force failure
         httpretty.register_uri(httpretty.DELETE,
-                               TEST_URL + "/ocdb/api/" + TEST_VERSION + "/datasets/4",
+                               TEST_URL + "/ocdb/api/" + TEST_API_VERSION + "/datasets/4",
                                status=404)
         with self.assertRaises(urllib.request.HTTPError):
             self.api.delete_dataset(dataset_id="4")
@@ -104,7 +104,7 @@ class DatasetsApiTest(ApiTest):
             "records": [[]]
         }
         httpretty.register_uri(httpretty.GET,
-                               TEST_URL + "/ocdb/api/" + TEST_VERSION + "/datasets/245",
+                               TEST_URL + "/ocdb/api/" + TEST_API_VERSION + "/datasets/245",
                                status=200,
                                body=json.dumps(expected_response).encode("utf-8"))
         response = self.api.get_dataset(dataset_id="245")
@@ -113,7 +113,7 @@ class DatasetsApiTest(ApiTest):
 
         # Force failure
         httpretty.register_uri(httpretty.GET,
-                               TEST_URL + "/ocdb/api/" + TEST_VERSION + "/datasets/246",
+                               TEST_URL + "/ocdb/api/" + TEST_API_VERSION + "/datasets/246",
                                status=404)
         with self.assertRaises(urllib.request.HTTPError):
             self.api.get_dataset(dataset_id="246")
@@ -127,7 +127,7 @@ class DatasetsApiTest(ApiTest):
             "records": [[]]
         }
         httpretty.register_uri(httpretty.GET,
-                               TEST_URL + "/ocdb/api/" + TEST_VERSION + ""
+                               TEST_URL + "/ocdb/api/" + TEST_API_VERSION + ""
                                "/datasets/BIGELOW/BALCH/gnats/chl/chl-s170604w.sub",
                                status=200,
                                body=json.dumps(expected_response).encode("utf-8"))
@@ -137,7 +137,7 @@ class DatasetsApiTest(ApiTest):
 
         # Force failure
         httpretty.register_uri(httpretty.GET,
-                               TEST_URL + "/ocdb/api/" + TEST_VERSION + ""
+                               TEST_URL + "/ocdb/api/" + TEST_API_VERSION + ""
                                "/datasets/BIGELOW/BALCH/gnats/chl/chl-s170604w.sub",
                                status=404)
         with self.assertRaises(urllib.request.HTTPError):
@@ -168,7 +168,7 @@ class DatasetsApiTest(ApiTest):
             }
         ]
         httpretty.register_uri(httpretty.GET,
-                               TEST_URL + "/ocdb/api/" + TEST_VERSION + ""
+                               TEST_URL + "/ocdb/api/" + TEST_API_VERSION + ""
                                "/datasets/BIGELOW/BALCH/gnats",
                                status=200,
                                body=json.dumps(expected_response).encode("utf-8"))
@@ -178,7 +178,7 @@ class DatasetsApiTest(ApiTest):
 
         # Force failure
         httpretty.register_uri(httpretty.GET,
-                               TEST_URL + "/ocdb/api/" + TEST_VERSION + ""
+                               TEST_URL + "/ocdb/api/" + TEST_API_VERSION + ""
                                "/datasets/IGELOW/ELCH/gnitz",
                                status=404)
         with self.assertRaises(urllib.request.HTTPError):
@@ -224,13 +224,13 @@ class ConfigApiTest(ApiTest):
 
         server_url_with_trailing_slash = 'http://localhost:2385/'
         api = OCDBApi(config_store=MemConfigStore(server_url=server_url_with_trailing_slash))
-        self.assertEqual('http://localhost:2385/ocdb/api/' + TEST_VERSION + '/datasets', api._make_url('datasets'))
-        self.assertEqual('http://localhost:2385/ocdb/api/' + TEST_VERSION + '/datasets', api._make_url('/datasets'))
+        self.assertEqual('http://localhost:2385/ocdb/api/' + TEST_API_VERSION + '/datasets', api._make_url('datasets'))
+        self.assertEqual('http://localhost:2385/ocdb/api/' + TEST_API_VERSION + '/datasets', api._make_url('/datasets'))
 
         server_url_without_trailing_slash = 'http://localhost:2385'
         api = OCDBApi(config_store=MemConfigStore(server_url=server_url_without_trailing_slash))
-        self.assertEqual('http://localhost:2385/ocdb/api/' + TEST_VERSION + '/datasets', api._make_url('datasets'))
-        self.assertEqual('http://localhost:2385/ocdb/api/' + TEST_VERSION + '/datasets', api._make_url('/datasets'))
+        self.assertEqual('http://localhost:2385/ocdb/api/' + TEST_API_VERSION + '/datasets', api._make_url('datasets'))
+        self.assertEqual('http://localhost:2385/ocdb/api/' + TEST_API_VERSION + '/datasets', api._make_url('/datasets'))
 
 
 class ApiImplTest(ApiTest):
@@ -295,7 +295,7 @@ class ApiUserTest(ApiTest):
             ],
         }
 
-        url = TEST_URL + "/ocdb/api/" + TEST_VERSION + "/users"
+        url = TEST_URL + "/ocdb/api/" + TEST_API_VERSION + "/users"
         httpretty.register_uri(httpretty.POST,
                                url,
                                status=200,
