@@ -30,11 +30,7 @@ install:
   - conda info -a
 
   - conda env create --file environment.yml
-  - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
-      activate ocdb
-    else
-      source activate ocdb
-    fi
+  - source activate ocdb
   - conda list
   - python setup.py install
 
