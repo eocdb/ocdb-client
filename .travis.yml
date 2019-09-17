@@ -27,6 +27,7 @@ install:
   - hash -r
   # - conda config --add channels conda-forge
   # - conda config --set channel_priority strict
+  - conda update -n base conda
   - conda config --set always_yes yes --set changeps1 no
   # Useful for debugging any issues with conda
   - conda info -a
