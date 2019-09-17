@@ -232,15 +232,28 @@ def get_submission_file(ctx, submission_id: str, index: int):
     print(result)
 
 
-@click.command(name='upload')
+@click.command(name='update')
 @click.option('--file', metavar='<submission-file>', help="Give submission file to re-upload", required=True)
 @click.option('--submission-id', '-s', 'submission_id', metavar='<submission-id>', help="Give submission ID",
               required=True)
 @click.option('--index', '-s', metavar='<index>', help='Specify submission file index', required=True)
 @click.pass_context
-def upload_submission_file(ctx, submission_id: str, index: int, file: str):
+def update_submission_file(ctx, submission_id: str, file: str, index: int):
     """Upload multiple dataset and documentation files."""
-    validation_results = ctx.obj.upload_submission_file(submission_id, index, file)
+    validation_results = ctx.obj.upload_submission_file(submission_id=submission_id, file_name=file, index=index)
+    _dump_json(validation_results)
+
+
+@click.command(name='add')
+@click.option('--file', metavar='<submission-file>', help="Give submission file to re-upload", required=True)
+@click.option('--submission-id', '-s', 'submission_id', metavar='<submission-id>', help="Give submission ID",
+              required=True)
+@click.option('--type', '-t', metavar='<type>', help='Specify type of new submission file',
+              type=click.Choice(['MEASUREMENT', 'DOCUMENT']), required=True)
+@click.pass_context
+def add_submission_file(ctx, submission_id: str, file: str, type: str):
+    """Upload multiple dataset and documentation files."""
+    validation_results = ctx.obj.upload_submission_file(submission_id=submission_id, file_name=file, typ=type)
     _dump_json(validation_results)
 
 
@@ -436,7 +449,8 @@ sbm.add_command(get_submissions_for_user)
 sbm.add_command(delete_submission)
 
 sbmfile.add_command(download_submission_file)
-sbmfile.add_command(upload_submission_file)
+sbmfile.add_command(update_submission_file)
+sbmfile.add_command(add_submission_file)
 sbmfile.add_command(validate_submission_file)
 
 user.add_command(add_user)

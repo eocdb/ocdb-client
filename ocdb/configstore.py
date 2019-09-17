@@ -48,6 +48,8 @@ class EnvConfigStore(ConfigStore):
 class JsonConfigStore(ConfigStore):
     def __init__(self, file_path: str):
         self.file_path = file_path
+        if not os.path.exists(self.file_path):
+            self.write({})
 
     def read(self) -> Config:
         if os.path.isfile(self.file_path):

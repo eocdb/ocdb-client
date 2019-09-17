@@ -314,9 +314,11 @@ class OCDBApi(Api):
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def upload_submission_file(self, submission_id: str, index: int, file_name: str) -> JsonObj:
+    def upload_submission_file(self, submission_id: str, file_name: str, typ: Optional[str],
+                               index: Optional[int] = None) -> JsonObj:
         """
         Upload a submission file by user defined Submission ID and index
+        :param typ: Type of upload
         :param submission_id: Submission ID
         :param index: Submission File index
         :param file_name: The file name to be uploaded
@@ -328,7 +330,13 @@ class OCDBApi(Api):
 
         data = bytes(form)
 
-        request = self._make_request(f'/store/upload/submissionfile/{submission_id}/{index}', data=data, method="PUT")
+        if index:
+            request = self._make_request(f'/store/upload/submissionfile/{submission_id}/{index}', data=data,
+                                         method="PUT")
+        else:
+            request = self._make_request(f'/store/add/submissionfile/{submission_id}/{typ}', data=data,
+                                         method="POST")
+
         request.add_header('Content-type', form.content_type)
         request.add_header('Content-length', len(data))
 
