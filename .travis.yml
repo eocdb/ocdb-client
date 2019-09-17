@@ -16,6 +16,7 @@ install:
       bash miniconda.sh -b -p $HOME/miniconda;
       export PATH="$HOME/miniconda/bin:$PATH";
     elif [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
+      choco install -y openssl;
       choco install -y miniconda3;
       export PATH="/c/tools/miniconda3/Scripts:$PATH";
     else

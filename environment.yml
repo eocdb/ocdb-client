@@ -11,6 +11,7 @@ dependencies:
   - click
   - pyyaml
   - pandas
+  - openssl
 
   #
   # development dependencies
