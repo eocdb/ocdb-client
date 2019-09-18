@@ -41,9 +41,9 @@ install:
 
 after_success:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-      conda install conda-build
-      conda install anaconda-client
-      bash conda/conda_upload.sh
+      conda install conda-build;
+      conda install anaconda-client;
+      bash conda/conda_upload.sh;
     fi
 
 
