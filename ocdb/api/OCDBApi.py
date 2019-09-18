@@ -1,3 +1,5 @@
+import sys
+import ssl
 import json
 import os
 import shutil
@@ -11,20 +13,17 @@ import pandas as pd
 from .api import Api, Config, JsonObj
 from .mpf import MultiPartForm
 from ..configstore import ConfigStore, JsonConfigStore
-from ..version import NAME, VERSION, DESCRIPTION
+from ..version import NAME, VERSION, DESCRIPTION, API_VERSION
 
 USER_AGENT = f"{NAME} / {VERSION} {DESCRIPTION}"
 
-API_VERSION = "v0.1.6"
 API_PATH_PREFIX = "/ocdb/api/" + API_VERSION
 
 USER_DIR = os.path.expanduser(os.path.join('~', '.ocdb'))
 DEFAULT_CONFIG_FILE_NAME = 'ocdb-client.json'
 DEFAULT_CONFIG_FILE = os.path.join(USER_DIR, DEFAULT_CONFIG_FILE_NAME)
 
-VALID_CONFIG_PARAM_NAMES = {'server_url'}
-
-import ssl
+VALID_CONFIG_PARAM_NAMES = {'server_url', 'traceback'}
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -51,6 +50,12 @@ class OCDBApi(Api):
         self._config = None
         if server_url is not None:
             self.server_url = server_url
+
+        traceback = self.get_config_param('traceback')
+        if traceback is not None:
+            sys.tracebacklimit = int(traceback)
+
+        self.verbose = False
 
     # Remote dataset access
 
@@ -230,13 +235,18 @@ class OCDBApi(Api):
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def get_submissions_for_user(self, user_id: str) -> JsonObj:
+    def get_submissions_for_user(self, user_name: Optional[str]) -> JsonObj:
         """
         Get all submission for a user
-        :param user_id: user ID
+        :param user_name: User Name
         :return: A JSON object representing the resulting list of submissions
         """
-        request = self._make_request(f'/store/upload/user', method="GET")
+
+        path = '/store/upload/user'
+        if user_name:
+            path = f'/store/upload/user/{user_name}'
+
+        request = self._make_request(path, method="GET")
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
@@ -304,9 +314,11 @@ class OCDBApi(Api):
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def upload_submission_file(self, submission_id: str, index: int, file_name: str) -> JsonObj:
+    def upload_submission_file(self, submission_id: str, file_name: str, typ: Optional[str],
+                               index: Optional[int] = None) -> JsonObj:
         """
         Upload a submission file by user defined Submission ID and index
+        :param typ: Type of upload
         :param submission_id: Submission ID
         :param index: Submission File index
         :param file_name: The file name to be uploaded
@@ -318,7 +330,13 @@ class OCDBApi(Api):
 
         data = bytes(form)
 
-        request = self._make_request(f'/store/upload/submissionfile/{submission_id}/{index}', data=data, method="PUT")
+        if index:
+            request = self._make_request(f'/store/upload/submissionfile/{submission_id}/{index}', data=data,
+                                         method="PUT")
+        else:
+            request = self._make_request(f'/store/add/submissionfile/{submission_id}/{typ}', data=data,
+                                         method="POST")
+
         request.add_header('Content-type', form.content_type)
         request.add_header('Content-length', len(data))
 
@@ -489,6 +507,7 @@ class OCDBApi(Api):
     def get_config_param(self, name: str, default: Any = None) -> Optional[Any]:
         """ Get the value of configuration parameter with given *name*. """
         self._ensure_config_initialized()
+
         return self._config.get(name, default)
 
     def set_config_param(self, name: str, value: Optional[Any], write: bool = False):
@@ -522,7 +541,8 @@ class OCDBApi(Api):
         if cookie is not None:
             headers.update({"Cookie": cookie})
 
-        print('Connecting to', url)
+        if self.verbose:
+            print('Connecting to', url)
 
         request = urllib.request.Request(url, data=data, headers=headers, method=method)
         request.add_header("User-Agent", USER_AGENT)

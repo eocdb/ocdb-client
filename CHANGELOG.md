@@ -1,3 +1,9 @@
+## CHANGES in v0.2.1:
+
+- The command line options are more consistent now
+- Added a validation command for submission files
+
+
 ## CHANGES in v0.2:
 
 - Pushed project to gitlab.eumetsat.int

@@ -32,9 +32,24 @@ class MemConfigStore(ConfigStore):
         self._config.update(config)
 
 
+class EnvConfigStore(ConfigStore):
+    def __init__(self, **config):
+        self._config = config
+
+    def read(self) -> Config:
+        for item in self._config:
+            self._config[item] = os.environ[item.upper()] or self._config[item]
+        return dict(self._config)
+
+    def write(self, config: Config):
+        self._config.update(config)
+
+
 class JsonConfigStore(ConfigStore):
     def __init__(self, file_path: str):
         self.file_path = file_path
+        if not os.path.exists(self.file_path):
+            self.write({})
 
     def read(self) -> Config:
         if os.path.isfile(self.file_path):

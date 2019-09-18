@@ -28,7 +28,7 @@ from setuptools import setup, find_packages
 requirements = [
     "click",
     "pyyaml",
-    'pandas'
+    'pandas', 'httpretty'
 ]
 
 packages = find_packages(exclude=["tests", "tests.*"])

@@ -8,12 +8,18 @@ import httpretty
 
 from ocdb.api.OCDBApi import OCDBApi
 from ocdb.configstore import MemConfigStore
+from ocdb.version import API_VERSION
+
+TEST_URL = "http://test-server"
+TEST_API_VERSION = API_VERSION
 
 
 class ClientTest(unittest.TestCase, metaclass=ABCMeta):
 
     def setUp(self):
         warnings.filterwarnings("ignore", category=ResourceWarning, message="unclosed.*")
+        os.environ['OCDB_SERVER_URL'] = TEST_URL
+
         self.api = OCDBApi(**self.api_kwargs)
         httpretty.enable()
 
@@ -23,7 +29,7 @@ class ClientTest(unittest.TestCase, metaclass=ABCMeta):
 
     @property
     def api_kwargs(self) -> Dict:
-        return dict(config_store=MemConfigStore(server_url="https://ocdb.eumetsat.int/"))
+        return dict(config_store=MemConfigStore(server_url=TEST_URL))
 
     @classmethod
     def get_input_base_dir(cls) -> str:

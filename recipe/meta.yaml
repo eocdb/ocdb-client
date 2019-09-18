@@ -1,0 +1,56 @@
+{% set name = "ocdb-client" %}
+{% set version = "0.1.1" %}
+
+package:
+  name: "{{ name }}"
+  version: "{{ version }}"
+
+source:
+  url: "https://github.com/eocdb/{{ name }}/archive/{{ version }}.tar.gz"
+
+build:
+  number: 0
+  noarch: python
+  script: "{{ PYTHON }} -m pip install . -vv"
+  entry_points:
+    # Put any entry points (scripts to be generated automatically) here.
+    - ocdb-cli = ocdb.main:main
+
+requirements:
+  host:
+    # Python
+    - python =>3.6
+    - pip
+  run:
+    # Python
+    - python =>3.6
+    # Required
+    - click
+    - pyyaml
+    - pandas
+test:
+  # Python imports
+  imports:
+    - ocdb
+    - ocdb.api
+    - ocdb.cli
+
+  commands:
+    # You can put test commands to be run here.  Use this to test that the
+    # entry points work.
+    - ocdb-cli --help
+
+about:
+  summary: "xcube is a Python package for generating and exploiting data cubes powered by xarray, dask, and zarr"
+  home: https://github.com/dcs4cop/xcube
+  license: MIT
+  license_family: MIT
+  license_file: LICENSE
+  description: "xcube is a Python package for generating and exploiting data cubes powered by xarray, dask, and zarr. It
+  has been designed in the context of Earth Observation data."
+  doc_url: https://github.com/eocdb/ocdb-client
+  dev_url: https://github.com/eocdb/ocdb-client
+
+extra:
+  recipe-maintainers:
+    - dzelge
