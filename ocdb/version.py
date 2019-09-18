@@ -19,7 +19,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-VERSION = "v0.1.1"
+VERSION = "v0.2.1"
 API_VERSION = "v0.1.6"
 DESCRIPTION = "Copernicus Ocean Colour In-Situ Database Python Client"
 DOCS_URL = 'https://github.com/bcdev/eocdb-client/blob/master/README.md'
