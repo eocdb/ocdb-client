@@ -217,7 +217,7 @@ def update_submission_status(ctx, submission_id: str, status: str):
 @click.option('--out-file', '-o', metavar='<out-file>', help='Specify name for the outfile (zip)')
 @click.pass_context
 def download_submission_file(ctx, submission_id: str, index: int, out_file: str):
-    """Get submission file --submission_id <submission_id> --index <index> [--out-file <name>]."""
+    """Get submission file --submission_id <submission_id> --index <index> [--out-file <name>.zip]."""
     result = ctx.obj.download_submission_file(submission_id, index, out_file)
     print(result)
 

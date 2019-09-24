@@ -1,5 +1,6 @@
 import sys
 import ssl
+import pathlib
 import json
 import os
 import shutil
@@ -59,8 +60,9 @@ class OCDBApi(Api):
 
     # Remote dataset access
 
-    def upload_submission(self, store_path: str, dataset_files: Sequence[str], doc_files: Sequence[str],
-                          submission_id: str, publication_date: str, allow_publication: bool) -> JsonObj:
+    def upload_submission(self, store_path: str, dataset_files: Sequence[str],
+                          submission_id: str, doc_files: Sequence[str] = (), publication_date: Optional[str] = None,
+                          allow_publication: Optional[bool] = False) -> JsonObj:
         """
         Generate a submission by uploading database and files to the submission database
         :param store_path: The path to the store. Should be of format affiliation/cruise/experiment
@@ -104,6 +106,9 @@ class OCDBApi(Api):
         :param out_fn: A filename for the resulting zip file.
         :return: A message where the files have been stored
         """
+
+        message = ""
+
         data = {'id_list': ids, 'docs': download_docs}
         data = json.dumps(data).encode('utf-8')
 
@@ -111,13 +116,19 @@ class OCDBApi(Api):
 
         if not out_fn:
             out_fn = 'download.zip'
+        else:
+            if pathlib.Path(out_fn).suffix != ".zip":
+                out_fn += ".zip"
+                message += "Output file must be zip. Added extension .zip"
 
         with urllib.request.urlopen(request) as response, open(out_fn, 'wb') as out_file:
             shutil.copyfileobj(response, out_file)
             out_file.close()
             with zipfile.ZipFile(out_fn) as zf:
                 zf.extractall()
-        return f'{ids} downloaded to {out_fn}'
+
+        message += f'{ids} downloaded to {out_fn}'
+        return message
 
     def add_dataset(self, dataset_file: str):
         """
@@ -286,16 +297,22 @@ class OCDBApi(Api):
         :return: A message
         """
         request = self._make_request(f'/store/download/submissionfile/{submission_id}/{index}', method="GET")
+        message = ""
 
         if not out_fn:
             out_fn = 'download.zip'
+        else:
+            if pathlib.Path(out_fn).suffix != ".zip":
+                out_fn += ".zip"
+                message += "Output file must be zip. Added extension .zip"
 
         with urllib.request.urlopen(request) as response, open(out_fn, 'wb') as out_file:
             shutil.copyfileobj(response, out_file)
             out_file.close()
             with zipfile.ZipFile(out_fn) as zf:
                 zf.extractall()
-        return f'{submission_id}/{index} downloaded to {out_fn}'
+        message += f'{submission_id}/{index} downloaded to {out_fn}'
+        return message
 
     def get_submission_file(self, submission_id: str, index: int) -> JsonObj:
         request = self._make_request(f'/store/upload/submissionfile/{submission_id}/{index}', method="GET")
@@ -330,7 +347,7 @@ class OCDBApi(Api):
 
         data = bytes(form)
 
-        if index:
+        if index is not None:
             request = self._make_request(f'/store/upload/submissionfile/{submission_id}/{index}', data=data,
                                          method="PUT")
         else:
