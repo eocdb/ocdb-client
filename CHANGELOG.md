@@ -1,7 +1,10 @@
-## CHANGES in v0.2.1:
+## CHANGES in v0.2.2:
 
 - The command line options are more consistent now
 - Added a validation command for submission files
+- A user can now add a file to a submission
+- The system enforces now the file extension .zip when downloading
+  submission or dataset files
 
 
 ## CHANGES in v0.2:

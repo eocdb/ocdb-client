@@ -61,17 +61,17 @@ def upload_submission(ctx, store_path: str, dataset_files: Sequence[str], doc_fi
 
 
 @click.command(name="download")
-@click.option('--dataset-ids', '-ids', metavar='<dataset-ids>', help='Specify dataset IDs', multiple=True)
+@click.option('--dataset-id', '-id', help='Specify dataset IDs', multiple=True)
 @click.option('--download-docs', '-docs', metavar='<docs>', help='Get docs, too', is_flag=True)
 @click.option('--out-file', '-o', metavar='<out-file>', help='Specify name for the outfile (zip)')
 @click.pass_context
-def download_datasets(ctx, dataset_ids: List[str], download_docs: bool, out_file: str):
-    """Download dataset files --dataset-ids <id> --download-docs [--out-file <out-file>]."""
+def download_datasets(ctx, dataset_id: List[str], download_docs: bool, out_file: str):
+    """Download dataset files --dataset-id <id> [--dataset-id <id> ...] --download-docs [--out-file <out-file>]."""
 
-    if not dataset_ids:
+    if not dataset_id:
         raise click.ClickException("Please give at least one dataset-id.")
 
-    result = ctx.obj.download_datasets_by_ids(dataset_ids, download_docs, out_file)
+    result = ctx.obj.download_datasets_by_ids(dataset_id, download_docs, out_file)
     print(result)
 
 
@@ -107,7 +107,7 @@ def find_datasets(ctx, expr, offset, count, query):
     """Find datasets using query expression <expr>."""
 
     if not expr and not query:
-        raise click.ClickException("Please give either an <expr> or a <query>.")
+        raise click.ClickException("Please give either an search keyword or expression --expr or a --query.")
 
     kwargs = {'expr': expr, 'offset': offset, 'count': count}
 
@@ -217,7 +217,7 @@ def update_submission_status(ctx, submission_id: str, status: str):
 @click.option('--out-file', '-o', metavar='<out-file>', help='Specify name for the outfile (zip)')
 @click.pass_context
 def download_submission_file(ctx, submission_id: str, index: int, out_file: str):
-    """Get submission file --submission_id <submission_id> --index <index> [--out-file <name>]."""
+    """Get submission file --submission_id <submission_id> --index <index> [--out-file <name>.zip]."""
     result = ctx.obj.download_submission_file(submission_id, index, out_file)
     print(result)
 
