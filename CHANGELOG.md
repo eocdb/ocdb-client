@@ -1,4 +1,4 @@
-## CHANGES in v0.2.1:
+## CHANGES in v0.2.2:
 
 - The command line options are more consistent now
 - Added a validation command for submission files
