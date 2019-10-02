@@ -8,7 +8,7 @@ language: bash
 os:
   - linux
   - osx
-  - windows
+#  - windows
 
 install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
