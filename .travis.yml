@@ -19,7 +19,7 @@ install:
       choco install -y openssl;
       choco install -y miniconda3;
       export PATH="/c/tools/miniconda3/Scripts:$PATH";
-      conda activate base;
+      source activate base;
     else
       wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
       bash miniconda.sh -b -p $HOME/miniconda;
@@ -44,7 +44,7 @@ after_success:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       conda install conda-build;
       conda install anaconda-client;
-      bash conda/conda_upload.sh;
+      #bash conda/conda_upload.sh;
     fi
 
 
