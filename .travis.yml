@@ -25,10 +25,8 @@ install:
   - conda init
   - source ~/.bashrc
   - conda config --add channels conda-forge
-  # - conda config --set channel_priority strict
   - conda config --set always_yes yes --set changeps1 no
   - conda update -n base conda
-  # Useful for debugging any issues with conda
   - conda info -a
 
   - conda env create --file environment.yml
@@ -42,7 +40,7 @@ after_success:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       conda install conda-build;
       conda install anaconda-client;
-      # bash conda/conda_upload.sh;
+      bash conda/conda_upload.sh;
     fi
 
 
