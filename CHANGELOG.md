@@ -1,3 +1,16 @@
+## CHANGES in v0.2.3:
+
+- Added api version tag to distinguish between api version and the
+  tag used by the api which changed to latest during the maintenance 
+  phase
+- Changed api version tag to latest
+
+## CHANGES in v0.2.2:
+
+- A user can now add a file to a submission
+- The system enforces now the file extension .zip when downloading
+  submission or dataset files
+
 ## CHANGES in v0.2.1:
 
 - The command line options are more consistent now

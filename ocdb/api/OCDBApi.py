@@ -13,11 +13,11 @@ import pandas as pd
 from .api import Api, Config, JsonObj
 from .mpf import MultiPartForm
 from ..configstore import ConfigStore, JsonConfigStore
-from ..version import NAME, VERSION, DESCRIPTION, API_VERSION
+from ..version import NAME, VERSION, DESCRIPTION, API_VERSION_TAG
 
 USER_AGENT = f"{NAME} / {VERSION} {DESCRIPTION}"
 
-API_PATH_PREFIX = "/ocdb/api/" + API_VERSION
+API_PATH_PREFIX = "/ocdb/api/" + API_VERSION_TAG
 
 USER_DIR = os.path.expanduser(os.path.join('~', '.ocdb'))
 DEFAULT_CONFIG_FILE_NAME = 'ocdb-client.json'
