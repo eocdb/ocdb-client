@@ -356,7 +356,7 @@ def whoami_user(ctx):
 @click.command(name="list")
 @click.pass_context
 def list_user(ctx):
-    """Who am I"""
+    """List users"""
     result = ctx.obj.list_user()
     _dump_json(result)
 
