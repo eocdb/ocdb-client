@@ -40,12 +40,13 @@ install:
 
   - pytest --cov=ocdb --cov-report html
 
-after_success:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-      conda install conda-build;
-      conda install anaconda-client;
-      #bash conda/conda_upload.sh;
-    fi
+
+#after_success:
+#  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+#      conda install conda-build;
+#      conda install anaconda-client;
+#      #bash conda/conda_upload.sh;
+#    fi
 
 
 
