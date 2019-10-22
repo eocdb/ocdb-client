@@ -17,34 +17,69 @@ class ApiTest(ClientTest, metaclass=ABCMeta):
 
 class DatasetsApiTest(ApiTest):
 
-    # def test_upload_store_files(self):
-    #     expected_response = {
-    #         'chl-s170604w.sub': {'issues': [], 'status': 'OK'},
-    #         'chl-s170710w.sub': {'issues': [], 'status': 'OK'}
-    #     }
-    #     httpretty.register_uri(httpretty.POST,
-    #                            TEST_URL + "ocdb/api/" + TEST_VERSION + "/store/upload",
-    #                            status=200,
-    #                            body=json.dumps(expected_response).encode("utf-8"))
-    #     dataset_paths = [self.get_input_path("chl", "chl-s170604w.sub"),
-    #                      self.get_input_path("chl", "chl-s170710w.sub")]
-    #     doc_file_paths = [self.get_input_path("cal_files", "ac90194.060328"),
-    #                       self.get_input_path("cal_files", "DI7125f.cal"),
-    #                       self.get_input_path("cal_files", "DI7125m.cal")]
-    #
-    #     response = self.api.upload_submission("BIGELOW/BALCH/gnats", dataset_paths, doc_file_paths, 'test', 'helge',
-    #                                           '2020-01-01', False)
-    #     self.assertIsInstance(response, dict)
-    #     self.assertEqual(expected_response, response)
-    #
-    #     # Force failure
-    #     httpretty.register_uri(httpretty.POST,
-    #                            TEST_URL + "ocdb/api/" + TEST_VERSION + "/store/upload",
-    #                            status=400)
-    #     with self.assertRaises(urllib.request.HTTPError) as cm:
-    #         self.api.upload_submission("BIGELOW/BALCH/gnats", dataset_paths, doc_file_paths)
-    #     self.assertEqual(400, cm.exception.code)
-    #     self.assertEqual("Bad Request", cm.exception.reason)
+    def test_upload_store_files(self):
+        expected_response = {
+            'chl-s170604w.sub': {'issues': [], 'status': 'OK'},
+            'chl-s170710w.sub': {'issues': [], 'status': 'OK'}
+        }
+
+        url = TEST_URL + "/ocdb/api/" + TEST_API_VERSION + "/store/upload/submission"
+
+        httpretty.register_uri(httpretty.POST,
+                               url,
+                               status=200,
+                               body=json.dumps(expected_response).encode("utf-8"))
+        dataset_paths = [self.get_input_path("chl", "chl-s170604w.sub"),
+                         self.get_input_path("chl", "chl-s170710w.sub")]
+        doc_file_paths = [self.get_input_path("cal_files", "ac90194.060328"),
+                          self.get_input_path("cal_files", "DI7125f.cal"),
+                          self.get_input_path("cal_files", "DI7125m.cal")]
+
+        response = self.api.upload_submission(store_path="BIGELOW/BALCH/gnats", dataset_files=dataset_paths,
+                                              doc_files=doc_file_paths, submission_id='test',
+                                              publication_date='2020-01-01', allow_publication=False)
+        self.assertIsInstance(response, dict)
+        self.assertEqual(expected_response, response)
+
+    def test_upload_single_store_files(self):
+        expected_response = {
+            'chl-s170604w.sub': {'issues': [], 'status': 'OK'},
+        }
+
+        url = TEST_URL + "/ocdb/api/" + TEST_API_VERSION + "/store/upload/submission"
+
+        httpretty.register_uri(httpretty.POST,
+                               url,
+                               status=200,
+                               body=json.dumps(expected_response).encode("utf-8"))
+        dataset_paths = self.get_input_path("chl", "chl-s170604w.sub")
+        doc_file_paths = self.get_input_path("cal_files", "ac90194.060328")
+
+        response = self.api.upload_submission(store_path="BIGELOW/BALCH/gnats", dataset_files=dataset_paths,
+                                              doc_files=doc_file_paths, submission_id='test',
+                                              publication_date='2020-01-01', allow_publication=False)
+        self.assertIsInstance(response, dict)
+        self.assertEqual(expected_response, response)
+
+    def test_upload_store_file_with_none_pub_date(self):
+        expected_response = {
+            'chl-s170604w.sub': {'issues': [], 'status': 'OK'}
+        }
+
+        url = TEST_URL + "/ocdb/api/" + TEST_API_VERSION + "/store/upload/submission"
+
+        httpretty.register_uri(httpretty.POST,
+                               url,
+                               status=200,
+                               body=json.dumps(expected_response).encode("utf-8"))
+        dataset_paths = self.get_input_path("chl", "chl-s170604w.sub")
+        doc_file_paths = []
+
+        response = self.api.upload_submission(store_path="BIGELOW/BALCH/gnats", dataset_files=dataset_paths,
+                                              doc_files=doc_file_paths, submission_id='test',
+                                              publication_date=None, allow_publication=False)
+        self.assertIsInstance(response, dict)
+        self.assertEqual(expected_response, response)
 
     def test_find_datasets(self):
         expected_response = {

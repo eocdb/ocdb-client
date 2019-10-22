@@ -34,6 +34,13 @@ def new_api(config_store: ConfigStore = None, server_url: str = None) -> Api:
     return OCDBApi(config_store=config_store, server_url=server_url)
 
 
+def _ensure_sequence(obj) -> Sequence[str]:
+    if hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes)):
+        return obj
+    else:
+        return [obj]
+
+
 class _DefaultConfigStore(JsonConfigStore):
 
     def __init__(self):
@@ -60,8 +67,9 @@ class OCDBApi(Api):
 
     # Remote dataset access
 
-    def upload_submission(self, store_path: str, dataset_files: Sequence[str],
-                          submission_id: str, doc_files: Sequence[str] = (), publication_date: Optional[str] = None,
+    def upload_submission(self, store_path: str, dataset_files: Union[str, Sequence[str]],
+                          submission_id: str, doc_files: Union[str, Sequence[str]] = '',
+                          publication_date: Optional[str] = None,
                           allow_publication: Optional[bool] = False) -> JsonObj:
         """
         Generate a submission by uploading database and files to the submission database
@@ -74,15 +82,15 @@ class OCDBApi(Api):
         :return: A message from the server
         """
 
+        dataset_files = _ensure_sequence(dataset_files)
+        doc_files = _ensure_sequence(doc_files)
+
         form = MultiPartForm()
         form.add_field('path', store_path)
         form.add_field('submissionid', submission_id)
-        if publication_date is None:
-            publication_date = '1970-01-01'
-        form.add_field('publicationdate', publication_date)
-        if allow_publication is not None:
-            form.add_field('allowpublication', str(allow_publication))
-        # form.add_field('userid', str(1))
+
+        form.add_field('publicationdate', str(publication_date))
+        form.add_field('allowpublication', str(allow_publication))
 
         for dataset_file in dataset_files:
             form.add_file(f'datasetfiles', os.path.basename(dataset_file), dataset_file, mime_type="text/plain")
@@ -331,11 +339,9 @@ class OCDBApi(Api):
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def upload_submission_file(self, submission_id: str, file_name: str, typ: Optional[str],
-                               index: Optional[int] = None) -> JsonObj:
+    def update_submission_file(self, submission_id: str, file_name: str, index: int) -> JsonObj:
         """
         Upload a submission file by user defined Submission ID and index
-        :param typ: Type of upload
         :param submission_id: Submission ID
         :param index: Submission File index
         :param file_name: The file name to be uploaded
@@ -347,12 +353,33 @@ class OCDBApi(Api):
 
         data = bytes(form)
 
-        if index is not None:
-            request = self._make_request(f'/store/upload/submissionfile/{submission_id}/{index}', data=data,
-                                         method="PUT")
-        else:
-            request = self._make_request(f'/store/add/submissionfile/{submission_id}/{typ}', data=data,
-                                         method="POST")
+        request = self._make_request(f'/store/upload/submissionfile/{submission_id}/{index}',
+                                     data=data,
+                                     method="PUT")
+
+        request.add_header('Content-type', form.content_type)
+        request.add_header('Content-length', len(data))
+
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+
+    def add_submission_file(self, submission_id: str, file_name: str, typ: str) -> JsonObj:
+        """
+        Upload a submission file by user defined Submission ID and index
+        :param typ: Type of upload
+        :param submission_id: Submission ID
+        :param file_name: The file name to be uploaded
+        :return: A message from the server
+        """
+        form = MultiPartForm()
+
+        form.add_file(f'files', os.path.basename(file_name), file_name, mime_type="text/plain")
+
+        data = bytes(form)
+
+        request = self._make_request(f'/store/add/submissionfile/{submission_id}/{typ}',
+                                     data=data,
+                                     method="POST")
 
         request.add_header('Content-type', form.content_type)
         request.add_header('Content-length', len(data))

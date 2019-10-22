@@ -1,3 +1,10 @@
+## CHANGES in v0.2.4:
+
+- upload_submission now accepts single files
+- upload submissions accepts now None publication date and false allow_publication
+- Added an API function add_submission_file
+- Renamed an API function upload_submission_file to update_submission_file
+
 ## CHANGES in v0.2.3:
 
 - Added api version tag to distinguish between api version and the
