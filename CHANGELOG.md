@@ -5,6 +5,7 @@
 - Added an API function add_submission_file
 - Renamed an API function upload_submission_file to update_submission_file
 - Renamed option store_path to path when uploading submissions
+- Allows now to add a non validating submission file to a submission
 
 ## CHANGES in v0.2.3:
 
