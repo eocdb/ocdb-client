@@ -14,7 +14,7 @@ class Api(metaclass=ABCMeta):
     # Remote dataset access
 
     @abstractmethod
-    def upload_submission(self, store_path: str, dataset_files: Union[str, Sequence[str]],
+    def upload_submission(self, path: str, dataset_files: Union[str, Sequence[str]],
                           doc_files: Union[str, Sequence[str]],
                           submission_id: str, publication_date: str, allow_publication: bool) -> JsonObj:
         """Upload the given dataset and doc files and return a validation report for each dataset file."""

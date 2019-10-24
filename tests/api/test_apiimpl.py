@@ -35,7 +35,7 @@ class DatasetsApiTest(ApiTest):
                           self.get_input_path("cal_files", "DI7125f.cal"),
                           self.get_input_path("cal_files", "DI7125m.cal")]
 
-        response = self.api.upload_submission(store_path="BIGELOW/BALCH/gnats", dataset_files=dataset_paths,
+        response = self.api.upload_submission(path="BIGELOW/BALCH/gnats", dataset_files=dataset_paths,
                                               doc_files=doc_file_paths, submission_id='test',
                                               publication_date='2020-01-01', allow_publication=False)
         self.assertIsInstance(response, dict)
@@ -55,7 +55,7 @@ class DatasetsApiTest(ApiTest):
         dataset_paths = self.get_input_path("chl", "chl-s170604w.sub")
         doc_file_paths = self.get_input_path("cal_files", "ac90194.060328")
 
-        response = self.api.upload_submission(store_path="BIGELOW/BALCH/gnats", dataset_files=dataset_paths,
+        response = self.api.upload_submission(path="BIGELOW/BALCH/gnats", dataset_files=dataset_paths,
                                               doc_files=doc_file_paths, submission_id='test',
                                               publication_date='2020-01-01', allow_publication=False)
         self.assertIsInstance(response, dict)
@@ -75,7 +75,7 @@ class DatasetsApiTest(ApiTest):
         dataset_paths = self.get_input_path("chl", "chl-s170604w.sub")
         doc_file_paths = []
 
-        response = self.api.upload_submission(store_path="BIGELOW/BALCH/gnats", dataset_files=dataset_paths,
+        response = self.api.upload_submission(path="BIGELOW/BALCH/gnats", dataset_files=dataset_paths,
                                               doc_files=doc_file_paths, submission_id='test',
                                               publication_date=None, allow_publication=False)
         self.assertIsInstance(response, dict)

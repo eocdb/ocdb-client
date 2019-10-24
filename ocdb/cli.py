@@ -32,28 +32,21 @@ def conf(ctx, name, value):
 
 
 @click.command(name='upload')
-@click.argument('store_path', metavar='<store_path>')
-@click.argument('dataset-files', metavar='<dataset-file> ...', nargs=-1)
+@click.argument('path', metavar='<path>', required=True)
+@click.argument('dataset-files', metavar='<dataset-file> ...', required=True, nargs=-1)
 @click.option('--doc-file', '-d', 'doc_files', metavar='<doc-file>', nargs=1,
               multiple=True,
               help="Labels all subsequent files as documentation files")
-@click.option('--submission-id', '-s', 'submission_id', metavar='<submission-id>', nargs=1, help="Give submission ID")
+@click.option('--submission-id', '-s', 'submission_id', metavar='<submission-id>', nargs=1, required=True,
+              help="Give submission ID")
 @click.option('--publication-date', '-pd', 'publication_date', metavar='<publication-date>', nargs=1,
               help="set date for publication")
 @click.option('--allow-publication', '-ap', 'allow_publication', metavar='<allow-publication>', is_flag=True,
               help="Specify whether you agree to publish the data")
 @click.pass_context
-def upload_submission(ctx, store_path: str, dataset_files: Sequence[str], doc_files: Sequence[str],
+def upload_submission(ctx, path: str, dataset_files: Sequence[str], doc_files: Sequence[str],
                       submission_id: str, publication_date: str, allow_publication: bool):
-    """Upload multiple dataset and documentation files."""
-    if not dataset_files:
-        raise click.ClickException("At least a single <dataset-file> must be given.")
-    if not submission_id:
-        raise click.ClickException("Please give a submission ID.")
-    if not store_path:
-        raise click.ClickException("Please give a path. Format should be affiliation/cruise/experiment")
-
-    validation_results = ctx.obj.upload_submission(store_path=store_path, dataset_files=dataset_files,
+    validation_results = ctx.obj.upload_submission(path=path, dataset_files=dataset_files,
                                                    doc_files=doc_files, submission_id=submission_id,
                                                    publication_date=publication_date,
                                                    allow_publication=allow_publication)
@@ -236,7 +229,7 @@ def get_submission_file(ctx, submission_id: str, index: int):
 @click.option('--file', metavar='<submission-file>', help="Give submission file to re-upload", required=True)
 @click.option('--submission-id', '-s', 'submission_id', metavar='<submission-id>', help="Give submission ID",
               required=True)
-@click.option('--index', '-s', metavar='<index>', help='Specify submission file index', required=True)
+@click.option('--index', '-i', metavar='<index>', help='Specify submission file index', required=True)
 @click.pass_context
 def update_submission_file(ctx, submission_id: str, file: str, index: int):
     """Upload multiple dataset and documentation files."""

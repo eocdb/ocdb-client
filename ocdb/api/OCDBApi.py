@@ -1,3 +1,4 @@
+import hashlib
 import sys
 import ssl
 import pathlib
@@ -67,13 +68,13 @@ class OCDBApi(Api):
 
     # Remote dataset access
 
-    def upload_submission(self, store_path: str, dataset_files: Union[str, Sequence[str]],
+    def upload_submission(self, path: str, dataset_files: Union[str, Sequence[str]],
                           submission_id: str, doc_files: Union[str, Sequence[str]] = '',
                           publication_date: Optional[str] = None,
                           allow_publication: Optional[bool] = False) -> JsonObj:
         """
         Generate a submission by uploading database and files to the submission database
-        :param store_path: The path to the store. Should be of format affiliation/cruise/experiment
+        :param path: The path to the store. Should be of format affiliation/cruise/experiment
         :param dataset_files: A list of dataset file names
         :param doc_files: A list of document file names
         :param submission_id: Q unique submission ID
@@ -86,7 +87,7 @@ class OCDBApi(Api):
         doc_files = _ensure_sequence(doc_files)
 
         form = MultiPartForm()
-        form.add_field('path', store_path)
+        form.add_field('path', path)
         form.add_field('submissionid', submission_id)
 
         form.add_field('publicationdate', str(publication_date))
@@ -469,6 +470,9 @@ class OCDBApi(Api):
         :return: A message from the server
         """
 
+        password = hashlib.md5(password)
+        new_password = hashlib.md5(new_password)
+
         data = json.dumps({'username': username, 'oldpassword': password, 'newpassword1': new_password,
                            'newpassword2': new_password}).encode(
             'utf-8')
@@ -512,7 +516,8 @@ class OCDBApi(Api):
         :param password: Password
         :return: A JSON representation of the user
         """
-        data = {'username': username, 'password': password}
+        import hashlib
+        data = {'username': username, 'password': hashlib.md5(password)}
         data = json.dumps(data).encode('utf-8')
 
         request = self._make_request(f'/users/login', data=data, method="POST")
