@@ -4,6 +4,7 @@
 - upload submissions accepts now None publication date and false allow_publication
 - Added an API function add_submission_file
 - Renamed an API function upload_submission_file to update_submission_file
+- Renamed option store_path to path when uploading submissions
 
 ## CHANGES in v0.2.3:
 

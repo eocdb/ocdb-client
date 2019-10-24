@@ -19,8 +19,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-VERSION = "v0.2.3"
-API_VERSION = "v0.1.8"
+VERSION = "v0.2.4"
+API_VERSION = "v0.1.9"
 API_VERSION_TAG = "latest"
 DESCRIPTION = "Copernicus Ocean Colour In-Situ Database Python Client"
 DOCS_URL = 'https://ocdb.readthedocs.io/en/latest'
