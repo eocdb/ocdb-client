@@ -30,6 +30,7 @@ install:
   # - conda config --set channel_priority strict
   - conda config --set always_yes yes --set changeps1 no
   - conda update -n base conda
+  - conda install conda-build anaconda-client
   # Useful for debugging any issues with conda
   - conda info -a
 
@@ -38,15 +39,19 @@ install:
   - conda list
   - python setup.py install
 
+script:
   - pytest --cov=ocdb --cov-report html
+  - conda build -c conda-forge recipe
 
+deploy:
+  # Deploy to Anaconda.org
+  - provider: script
+    script: bash conda/conda_upload.sh
+    on:
+      tags: true
+    condition: $TRAVIS_OS_NAME = linux
+    skip_cleanup: true
 
-#after_success:
-#  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-#      conda install conda-build;
-#      conda install anaconda-client;
-#      #bash conda/conda_upload.sh;
-#    fi
 
 
 

@@ -14,7 +14,8 @@ class Api(metaclass=ABCMeta):
     # Remote dataset access
 
     @abstractmethod
-    def upload_submission(self, store_path: str, dataset_files: Sequence[str], doc_files: Sequence[str],
+    def upload_submission(self, path: str, dataset_files: Union[str, Sequence[str]],
+                          doc_files: Union[str, Sequence[str]],
                           submission_id: str, publication_date: str, allow_publication: bool) -> JsonObj:
         """Upload the given dataset and doc files and return a validation report for each dataset file."""
 
@@ -80,8 +81,12 @@ class Api(metaclass=ABCMeta):
         """Get submission file by submission id and index"""
 
     @abstractmethod
-    def upload_submission_file(self, **kwargs) -> JsonObj:
+    def update_submission_file(self, **kwargs) -> JsonObj:
         """Re-upload a single suibmission file"""
+
+    @abstractmethod
+    def add_submission_file(self, **kwargs) -> JsonObj:
+        """Add a single suibmission file"""
 
     @abstractmethod
     def delete_submission_file(self, **kwargs) -> JsonObj:
