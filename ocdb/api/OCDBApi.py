@@ -1,4 +1,3 @@
-import hashlib
 import sys
 import ssl
 import pathlib
@@ -67,7 +66,6 @@ class OCDBApi(Api):
         self.verbose = False
 
     # Remote dataset access
-
     def upload_submission(self, path: str, dataset_files: Union[str, Sequence[str]],
                           submission_id: str, doc_files: Union[str, Sequence[str]] = '',
                           publication_date: Optional[str] = None,
@@ -367,12 +365,15 @@ class OCDBApi(Api):
     def add_submission_file(self, submission_id: str, file_name: str, typ: str) -> JsonObj:
         """
         Upload a submission file by user defined Submission ID and index
-        :param typ: Type of upload
+        :param typ: Type of upload [MEASUREMENT | DOCUMENT]
         :param submission_id: Submission ID
         :param file_name: The file name to be uploaded
         :return: A message from the server
         """
         form = MultiPartForm()
+
+        if typ not in ("MEASUREMENT", "DOCUMENT"):
+            return json.load({"message", "Type must be MEASUREMENT or DOCUMENT"})
 
         form.add_file(f'files', os.path.basename(file_name), file_name, mime_type="text/plain")
 
@@ -470,8 +471,8 @@ class OCDBApi(Api):
         :return: A message from the server
         """
 
-        password = hashlib.md5(password)
-        new_password = hashlib.md5(new_password)
+        password = password
+        new_password = new_password
 
         data = json.dumps({'username': username, 'oldpassword': password, 'newpassword1': new_password,
                            'newpassword2': new_password}).encode(
@@ -516,8 +517,7 @@ class OCDBApi(Api):
         :param password: Password
         :return: A JSON representation of the user
         """
-        import hashlib
-        data = {'username': username, 'password': hashlib.md5(password)}
+        data = {'username': username, 'password': password}
         data = json.dumps(data).encode('utf-8')
 
         request = self._make_request(f'/users/login', data=data, method="POST")
