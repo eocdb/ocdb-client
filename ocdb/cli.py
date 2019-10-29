@@ -233,7 +233,7 @@ def get_submission_file(ctx, submission_id: str, index: int):
 @click.pass_context
 def update_submission_file(ctx, submission_id: str, file: str, index: int):
     """Upload multiple dataset and documentation files."""
-    validation_results = ctx.obj.upload_submission_file(submission_id=submission_id, file_name=file, index=index)
+    validation_results = ctx.obj.update_submission_file(submission_id=submission_id, file_name=file, index=index)
     _dump_json(validation_results)
 
 
