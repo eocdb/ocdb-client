@@ -4,6 +4,7 @@ from typing import Sequence, List, Optional
 import click
 
 from ocdb.api import JsonObj
+from ocdb.api.util import DATASET_TYPES
 from .version import VERSION, LICENSE_TEXT
 
 
@@ -242,7 +243,7 @@ def update_submission_file(ctx, submission_id: str, file: str, index: int):
 @click.option('--submission-id', '-s', 'submission_id', metavar='<submission-id>', help="Give submission ID",
               required=True)
 @click.option('--type', '-t', metavar='<type>', help='Specify type of new submission file',
-              type=click.Choice(['MEASUREMENT', 'DOCUMENT']), required=True)
+              type=click.Choice(DATASET_TYPES), required=True)
 @click.pass_context
 def add_submission_file(ctx, submission_id: str, file: str, type: str):
     """Upload multiple dataset and documentation files."""
