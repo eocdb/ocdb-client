@@ -476,8 +476,7 @@ class OCDBApi(Api):
         new_password = new_password
 
         data = json.dumps({'username': username, 'oldpassword': password, 'newpassword1': new_password,
-                           'newpassword2': new_password}).encode(
-            'utf-8')
+                           'newpassword2': new_password}).encode('utf-8')
 
         request = self._make_request(f'/users/login', data=data, method="PUT")
         with urllib.request.urlopen(request) as response:
