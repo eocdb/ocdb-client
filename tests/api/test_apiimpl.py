@@ -1,14 +1,55 @@
 import json
 import os
+import tempfile
 import unittest
 import urllib.request
 from abc import ABCMeta
 
 import httpretty
 
-from ocdb.api.OCDBApi import OCDBApi, USER_DIR
+from ocdb.api.OCDBApi import OCDBApi, USER_DIR, new_api
 from ocdb.configstore import MemConfigStore
 from tests.helpers import ClientTest, TEST_URL, TEST_API_VERSION
+
+
+TEST_DATA = """/begin_header
+/identifier_product_doi=10.5067/SeaBASS/SCOTIA_PRINCE_FERRY/DATA001
+/received=20040220
+/affiliations=Bigelow_Laboratory_for_Ocean_Sciences
+/investigators=William_Balch
+/contact=bbalch@bigelow.org
+/experiment=Scotia_Prince_ferry
+/cruise=s030603w
+/data_type=cast
+/west_longitude=-66.4551[DEG]
+/east_longitude=-66.4551[DEG]
+/north_latitude=43.7621[DEG]
+/south_latitude=43.7621[DEG]
+/start_date=20030603
+/end_date=20030603
+/start_time=14:00:38[GMT]
+/end_time=14:00:38[GMT]
+/fields=date,time,lat,lon,depth,wt
+/units=yyyymmdd,hh:mm:ss,degrees,degrees,meters,degreesc
+/data_status=final
+/delimiter=space
+/documents=readme.txt
+/data_file_name=T0_00686.EDF
+/missing=-99.99
+/water_depth=NA
+/wind_speed=NA
+/wave_height=NA
+/secchi_depth=NA
+/cloud_percent=NA
+/station=NA
+/calibration_files=no-calibration-file.txt
+/end_header
+20030603 14:00:38 43.7620 -66.4551 0.60 8.37
+20030603 14:00:38 43.7620 -66.4551 1.30 7.05
+"""
+
+
+TEST_DATA_FILE_NAME = ""
 
 
 class ApiTest(ClientTest, metaclass=ABCMeta):
@@ -275,6 +316,12 @@ class ApiImplTest(ApiTest):
         if os.path.isfile(login_info_file):
             os.remove(login_info_file)
 
+        fp = tempfile.NamedTemporaryFile(delete=False, suffix='.sb', mode='w')
+        fp.write(TEST_DATA)
+        global TEST_DATA_FILE_NAME
+        TEST_DATA_FILE_NAME = fp.name
+        fp.close()
+
     def test_constr(self):
         api = OCDBApi()
         self.assertIsNotNone(api.config)
@@ -316,6 +363,12 @@ class ApiImplTest(ApiTest):
         OCDBApi.delete_login_cookie()
         self.assertFalse(os.path.isfile(login_info_file))
 
+    def test_add_submission_file(self):
+        api = new_api()
+        result = api.add_submission_file(submission_id='test', file_name=TEST_DATA_FILE_NAME, typ="dfsvdfsv")
+        expected = {"message": "Type must be MEASUREMENT or DOCUMENT"}
+        self.assertEqual(expected, result)
+
 
 class ApiUserTest(ApiTest):
     def test_user_add(self):
@@ -339,3 +392,6 @@ class ApiUserTest(ApiTest):
         response = self.api.add_user(**expected_response)
         self.assertIsInstance(response, dict)
         self.assertEqual(expected_response, response)
+
+#    def test_user_change_own_pwd(self):
+

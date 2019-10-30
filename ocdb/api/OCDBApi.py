@@ -15,6 +15,7 @@ from .api import Api, Config, JsonObj
 from .mpf import MultiPartForm
 from ..configstore import ConfigStore, JsonConfigStore
 from ..version import NAME, VERSION, DESCRIPTION, API_VERSION_TAG
+from ocdb.api.util import DATASET_TYPES
 
 USER_AGENT = f"{NAME} / {VERSION} {DESCRIPTION}"
 
@@ -362,7 +363,7 @@ class OCDBApi(Api):
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def add_submission_file(self, submission_id: str, file_name: str, typ: str) -> JsonObj:
+    def add_submission_file(self, submission_id: str, file_name: str, typ: str) -> Union[JsonObj, str]:
         """
         Upload a submission file by user defined Submission ID and index
         :param typ: Type of upload [MEASUREMENT | DOCUMENT]
@@ -372,8 +373,8 @@ class OCDBApi(Api):
         """
         form = MultiPartForm()
 
-        if typ not in ("MEASUREMENT", "DOCUMENT"):
-            return json.load({"message", "Type must be MEASUREMENT or DOCUMENT"})
+        if typ not in DATASET_TYPES:
+            return {"message": "Type must be MEASUREMENT or DOCUMENT"}
 
         form.add_file(f'files', os.path.basename(file_name), file_name, mime_type="text/plain")
 
@@ -475,8 +476,7 @@ class OCDBApi(Api):
         new_password = new_password
 
         data = json.dumps({'username': username, 'oldpassword': password, 'newpassword1': new_password,
-                           'newpassword2': new_password}).encode(
-            'utf-8')
+                           'newpassword2': new_password}).encode('utf-8')
 
         request = self._make_request(f'/users/login', data=data, method="PUT")
         with urllib.request.urlopen(request) as response:
