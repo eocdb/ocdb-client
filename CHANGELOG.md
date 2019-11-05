@@ -1,3 +1,7 @@
+## CHANGES in v0.2.5:
+
+- Fixed submission upload: It accepts now not to pass any document files 
+
 ## CHANGES in v0.2.4:
 
 - upload_submission now accepts single files
