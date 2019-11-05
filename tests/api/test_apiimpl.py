@@ -82,6 +82,27 @@ class DatasetsApiTest(ApiTest):
         self.assertIsInstance(response, dict)
         self.assertEqual(expected_response, response)
 
+    def test_upload_store_files_without_docs(self):
+        expected_response = {
+            'chl-s170604w.sub': {'issues': [], 'status': 'OK'},
+            'chl-s170710w.sub': {'issues': [], 'status': 'OK'}
+        }
+
+        url = TEST_URL + "/ocdb/api/" + TEST_API_VERSION + "/store/upload/submission"
+
+        httpretty.register_uri(httpretty.POST,
+                               url,
+                               status=200,
+                               body=json.dumps(expected_response).encode("utf-8"))
+        dataset_paths = [self.get_input_path("chl", "chl-s170604w.sub"),
+                         self.get_input_path("chl", "chl-s170710w.sub")]
+
+        response = self.api.upload_submission(path="BIGELOW/BALCH/gnats", dataset_files=dataset_paths,
+                                              submission_id='ohne docs',
+                                              publication_date='2020-01-01', allow_publication=False)
+        self.assertIsInstance(response, dict)
+        self.assertEqual(expected_response, response)
+
     def test_upload_single_store_files(self):
         expected_response = {
             'chl-s170604w.sub': {'issues': [], 'status': 'OK'},
