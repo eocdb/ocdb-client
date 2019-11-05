@@ -36,7 +36,9 @@ def new_api(config_store: ConfigStore = None, server_url: str = None) -> Api:
 
 
 def _ensure_sequence(obj) -> Sequence[str]:
-    if hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes)):
+    if not obj:
+        return []
+    elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes)):
         return obj
     else:
         return [obj]
@@ -68,7 +70,7 @@ class OCDBApi(Api):
 
     # Remote dataset access
     def upload_submission(self, path: str, dataset_files: Union[str, Sequence[str]],
-                          submission_id: str, doc_files: Union[str, Sequence[str]] = '',
+                          submission_id: str, doc_files: Optional[Union[str, Sequence[str]]] = None,
                           publication_date: Optional[str] = None,
                           allow_publication: Optional[bool] = False) -> JsonObj:
         """

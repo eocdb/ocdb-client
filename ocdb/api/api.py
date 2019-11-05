@@ -15,7 +15,7 @@ class Api(metaclass=ABCMeta):
 
     @abstractmethod
     def upload_submission(self, path: str, dataset_files: Union[str, Sequence[str]],
-                          doc_files: Union[str, Sequence[str]],
+                          doc_files: Optional[Union[str, Sequence[str]]],
                           submission_id: str, publication_date: str, allow_publication: bool) -> JsonObj:
         """Upload the given dataset and doc files and return a validation report for each dataset file."""
 
