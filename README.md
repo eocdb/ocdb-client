@@ -42,7 +42,7 @@ ocdb-cli conf server_url https://ocdb-eumetsat.int
 
 ```python
 
-from ocdb_client.api.OCDBApi import new_api
+from ocdb.api.OCDBApi import new_api
 
 api = new_api()
 
