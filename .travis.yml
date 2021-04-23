@@ -38,7 +38,6 @@ install:
   - source activate ocdb
   - conda list
   - python setup.py install
-  - ocdb conf password-key testkey
 
 script:
   - pytest --cov=ocdb --cov-report html

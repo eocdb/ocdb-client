@@ -2,8 +2,8 @@ import json
 import os
 import tempfile
 import unittest
-import urllib.request
 from abc import ABCMeta
+from urllib.error import HTTPError
 
 import httpretty
 
@@ -190,7 +190,7 @@ class DatasetsApiTest(ApiTest):
         httpretty.register_uri(httpretty.DELETE,
                                TEST_URL + "/ocdb/api/" + TEST_API_VERSION + "/datasets/4",
                                status=404)
-        with self.assertRaises(urllib.request.HTTPError):
+        with self.assertRaises(HTTPError):
             self.api.delete_dataset(dataset_id="4")
 
     def test_get_dataset(self):
@@ -212,7 +212,7 @@ class DatasetsApiTest(ApiTest):
         httpretty.register_uri(httpretty.GET,
                                TEST_URL + "/ocdb/api/" + TEST_API_VERSION + "/datasets/246",
                                status=404)
-        with self.assertRaises(urllib.request.HTTPError):
+        with self.assertRaises(HTTPError):
             self.api.get_dataset(dataset_id="246")
 
     @unittest.skip('Not implemented')
@@ -237,7 +237,7 @@ class DatasetsApiTest(ApiTest):
                                TEST_URL + "/ocdb/api/" + TEST_API_VERSION + ""
                                "/datasets/BIGELOW/BALCH/gnats/chl/chl-s170604w.sub",
                                status=404)
-        with self.assertRaises(urllib.request.HTTPError):
+        with self.assertRaises(HTTPError):
             self.api.get_dataset_by_name(dataset_path="BIGELOW/BALCH/gnats/chl/chl-s170604w.sub")
 
         with self.assertRaises(ValueError) as cm:
@@ -278,7 +278,7 @@ class DatasetsApiTest(ApiTest):
                                TEST_URL + "/ocdb/api/" + TEST_API_VERSION + ""
                                "/datasets/IGELOW/ELCH/gnitz",
                                status=404)
-        with self.assertRaises(urllib.request.HTTPError):
+        with self.assertRaises(HTTPError):
             self.api.list_datasets_in_path(dataset_path="IGELOW/ELCH/gnitz")
 
         with self.assertRaises(ValueError):
@@ -410,6 +410,7 @@ class ApiUserTest(ApiTest):
                                url,
                                status=200,
                                body=json.dumps(expected_response).encode("utf-8"))
+        self.api.set_config_param('password-key', 'test-key')
         response = self.api.add_user(**expected_response)
         self.assertIsInstance(response, dict)
         self.assertEqual(expected_response, response)
