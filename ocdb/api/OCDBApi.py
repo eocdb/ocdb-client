@@ -1,5 +1,4 @@
 import sys
-import ssl
 import pathlib
 import json
 import os
@@ -11,6 +10,7 @@ from typing import Any, Optional, Sequence, List, Union
 
 import pandas as pd
 
+from . import utils
 from .api import Api, Config, JsonObj
 from .mpf import MultiPartForm
 from ..configstore import ConfigStore, JsonConfigStore
@@ -25,9 +25,7 @@ USER_DIR = os.path.expanduser(os.path.join('~', '.ocdb'))
 DEFAULT_CONFIG_FILE_NAME = 'ocdb-client.json'
 DEFAULT_CONFIG_FILE = os.path.join(USER_DIR, DEFAULT_CONFIG_FILE_NAME)
 
-VALID_CONFIG_PARAM_NAMES = {'server_url', 'traceback'}
-
-ssl._create_default_https_context = ssl._create_unverified_context
+VALID_CONFIG_PARAM_NAMES = {'server_url', 'traceback', 'password-key'}
 
 
 def new_api(config_store: ConfigStore = None, server_url: str = None) -> Api:
@@ -104,7 +102,7 @@ class OCDBApi(Api):
 
         request = self._make_request('/store/upload/submission', data=data, method=form.method)
         request.add_header('Content-type', form.content_type)
-        request.add_header('Content-length', len(data))
+        request.add_header('Content-length', f'{len(data)}')
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
@@ -360,7 +358,7 @@ class OCDBApi(Api):
                                      method="PUT")
 
         request.add_header('Content-type', form.content_type)
-        request.add_header('Content-length', len(data))
+        request.add_header('Content-length', f'{len(data)}')
 
         with urllib.request.urlopen(request) as response:
             return json.load(response)
@@ -387,7 +385,7 @@ class OCDBApi(Api):
                                      method="POST")
 
         request.add_header('Content-type', form.content_type)
-        request.add_header('Content-length', len(data))
+        request.add_header('Content-length', f'{len(data)}')
 
         with urllib.request.urlopen(request) as response:
             return json.load(response)
@@ -421,6 +419,10 @@ class OCDBApi(Api):
         :param roles: A list of roles
         :return: A message from the server
         """
+
+        key = self.get_config_param('password-key')
+        password = utils.encrypt(password, key)
+
         data = {
             'name': username,
             'first_name': first_name,
@@ -474,8 +476,9 @@ class OCDBApi(Api):
         :return: A message from the server
         """
 
-        password = password
-        new_password = new_password
+        key = self.get_config_param('password-key')
+        # password = utils.encrypt(password, key)
+        # new_password = utils.encrypt(new_password, key)
 
         data = json.dumps({'username': username, 'oldpassword': password, 'newpassword1': new_password,
                            'newpassword2': new_password}).encode('utf-8')
@@ -519,6 +522,11 @@ class OCDBApi(Api):
         :param password: Password
         :return: A JSON representation of the user
         """
+
+        key = self.get_config_param('password-key')
+
+        password = utils.encrypt(password, key)
+
         data = {'username': username, 'password': password}
         data = json.dumps(data).encode('utf-8')
 
