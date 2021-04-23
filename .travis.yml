@@ -36,7 +36,6 @@ install:
 
   - conda env create --file environment.yml
   - source activate ocdb
-  - conda list
   - python setup.py install
 
 script:
