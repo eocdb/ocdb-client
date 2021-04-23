@@ -1,6 +1,10 @@
-## CHANGES in v0.2.5:
+## CHANGES in v0.2.7
 
-- Fixed submission upload: It accepts now not to pass any document files 
+- Improved password encryption
+
+## CHANGES in v0.2.6
+
+- Fixed submission upload: It accepts now not to pass any document files
 
 ## CHANGES in v0.2.4:
 
