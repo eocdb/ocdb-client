@@ -1,9 +1,16 @@
-def encrypt(txt: str, key: str) -> str:
+from typing import Optional, Union
+
+
+def encrypt(txt: str, salt: Optional[Union[str, bytes]] = None) -> str:
     import hashlib
-    import hmac
 
-    if key is None:
-        raise ValueError("password-key must be set: ocdb conf password-key [key].")
+    if salt is None:
+        # noinspection InsecureHash
+        h = hashlib.sha512(txt.encode('utf-8'))
+        return h.hexdigest()
+    else:
+        if isinstance(salt, str):
+            salt = salt.encode('utf-8')
 
-    h = hmac.new(key.encode(), txt.encode(), hashlib.sha512)
-    return h.hexdigest()
+        h = hashlib.pbkdf2_hmac('sha512', txt.encode('utf-8'), salt, 100000)
+        return h.hex()

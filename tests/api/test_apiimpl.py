@@ -410,10 +410,37 @@ class ApiUserTest(ApiTest):
                                url,
                                status=200,
                                body=json.dumps(expected_response).encode("utf-8"))
-        self.api.set_config_param('password-key', 'test-key')
+
         response = self.api.add_user(**expected_response)
         self.assertIsInstance(response, dict)
         self.assertEqual(expected_response, response)
+        res = self.api.get_config_param('password-salt')
+        self.assertIsNone(res)
+
+    def test_change_user_login(self):
+        url = TEST_URL + "/ocdb/api/" + TEST_API_VERSION + "/users/login"
+        httpretty.register_uri(httpretty.PUT,
+                               url,
+                               status=200,
+                               json={})
+        url = TEST_URL + "/ocdb/api/" + TEST_API_VERSION + "/users/login"
+        httpretty.register_uri(httpretty.GET, url, status=200, body=json.dumps('helge').encode('utf-8'))
+
+        # Test user get initial password by admin
+        self.api.set_config_param('password-salt', None)
+
+        self.api.change_user_login('helge2', 'passwd1', 'passwd2')
+        res = self.api.get_config_param('password-salt')
+        self.assertIsNone(res)
+
+        # Check whether the client creates a salt when the user changes own password
+        self.api.change_user_login('helge', 'passwd1', 'passwd2')
+
+        res = self.api.get_config_param('password-salt')
+
+        self.assertIsNotNone(res)
+        self.assertIsInstance(res, bytes)
+
 
 #    def test_user_change_own_pwd(self):
 

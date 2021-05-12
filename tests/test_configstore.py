@@ -1,6 +1,8 @@
 import unittest
 import os
+import stat
 from ocdb.configstore import ConfigStore, MemConfigStore, JsonConfigStore
+from ocdb.const import CONFIG_FILE_MODE, CONFIG_DIR_MODE
 
 
 class ConfigStoreTest(unittest.TestCase):
@@ -33,6 +35,11 @@ class ConfigStoreTest(unittest.TestCase):
             os.rmdir(dir_path)
         self._test_config_store(JsonConfigStore(file_path))
         self.assertTrue(os.path.exists(file_path))
+        mode = stat.S_IMODE(os.lstat(file_path).st_mode)
+        self.assertEqual(mode, CONFIG_FILE_MODE)
+        mode = stat.S_IMODE(os.lstat(dir_path).st_mode)
+        self.assertEqual(mode, CONFIG_DIR_MODE)
+
         if os.path.exists(file_path):
             os.remove(file_path)
         if os.path.exists(dir_path):

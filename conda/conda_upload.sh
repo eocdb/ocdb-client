@@ -7,6 +7,6 @@ conda config --set anaconda_upload no
 
 CONDA_PACKAGE=$(conda build -c conda-forge recipe --output)
 
-echo anaconda -t ${CONDA_UPLOAD_TOKEN} upload  -u ${USER} ${CONDA_PACKAGE} --force
+echo anaconda -t ${CONDA_UPLOAD_TOKEN} upload  -u ${USER} ${PKG_NAME} --force
 
-anaconda -t ${CONDA_UPLOAD_TOKEN} upload  -u ${USER} ${CONDA_PACKAGE} --force
+anaconda -t ${CONDA_UPLOAD_TOKEN} upload  -u ${USER} ${PKG_NAME} --force

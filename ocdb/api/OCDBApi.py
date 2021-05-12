@@ -25,7 +25,7 @@ USER_DIR = os.path.expanduser(os.path.join('~', '.ocdb'))
 DEFAULT_CONFIG_FILE_NAME = 'ocdb-client.json'
 DEFAULT_CONFIG_FILE = os.path.join(USER_DIR, DEFAULT_CONFIG_FILE_NAME)
 
-VALID_CONFIG_PARAM_NAMES = {'server_url', 'traceback', 'password-key'}
+VALID_CONFIG_PARAM_NAMES = {'server_url', 'traceback', 'password-salt'}
 
 
 def new_api(config_store: ConfigStore = None, server_url: str = None) -> Api:
@@ -420,8 +420,7 @@ class OCDBApi(Api):
         :return: A message from the server
         """
 
-        key = self.get_config_param('password-key')
-        password = utils.encrypt(password, key)
+        password = utils.encrypt(password)
 
         data = {
             'name': username,
@@ -476,9 +475,18 @@ class OCDBApi(Api):
         :return: A message from the server
         """
 
-        key = self.get_config_param('password-key')
-        # password = utils.encrypt(password, key)
-        # new_password = utils.encrypt(new_password, key)
+        current_user = self.whoami()
+
+        salt = self.get_config_param('password-salt')
+        password = utils.encrypt(password, salt=salt)
+
+        if username == current_user:
+            import os
+            salt = os.urandom(32)
+            new_password = utils.encrypt(new_password, salt=salt)
+            self.set_config_param('password-salt', salt, write=True)
+        else:
+            new_password = utils.encrypt(new_password)
 
         data = json.dumps({'username': username, 'oldpassword': password, 'newpassword1': new_password,
                            'newpassword2': new_password}).encode('utf-8')
@@ -497,12 +505,13 @@ class OCDBApi(Api):
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def whoami_user(self) -> JsonObj:
+    def whoami(self) -> JsonObj:
         """
         Who am I
         :return: The user name
         """
         request = self._make_request(f'/users/login', method="GET")
+        print(request.full_url)
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
@@ -523,21 +532,28 @@ class OCDBApi(Api):
         :return: A JSON representation of the user
         """
 
-        key = self.get_config_param('password-key')
+        salt = self.get_config_param('password-salt')
 
-        password = utils.encrypt(password, key)
+        if salt:
+            password = utils.encrypt(password, salt)
+        else:
+            print("You seem to run on an initial Password. Please consider to change.")
+            password = utils.encrypt(password)
 
-        data = {'username': username, 'password': password}
+        data = {'username': username, 'password': password, 'client-version': VERSION}
         data = json.dumps(data).encode('utf-8')
 
         request = self._make_request(f'/users/login', data=data, method="POST")
-        with urllib.request.urlopen(request) as response:
-            info = response.info()
-            if info.__contains__("Set-Cookie"):
-                cookie = info.__getitem__("Set-Cookie")
-                OCDBApi.store_login_cookie(cookie)
+        try:
+            with urllib.request.urlopen(request) as response:
+                info = response.info()
+                if info.__contains__("Set-Cookie"):
+                    cookie = info.__getitem__("Set-Cookie")
+                    OCDBApi.store_login_cookie(cookie)
 
-            return json.load(response)
+                return json.load(response)
+        except Exception as e:
+            raise ValueError(str(e))
 
     def logout_user(self) -> JsonObj:
         """
@@ -602,7 +618,7 @@ class OCDBApi(Api):
 
         if self.verbose:
             print('Connecting to', url)
-
+        print(url)
         request = urllib.request.Request(url, data=data, headers=headers, method=method)
         request.add_header("User-Agent", USER_AGENT)
         return request

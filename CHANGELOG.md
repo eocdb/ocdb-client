@@ -1,6 +1,10 @@
 ## CHANGES in v0.2.7
 
 - Improved password encryption
+- Config files get now user read only permissions 
+- Client is now sending version info to server when logging in to ensure
+  that the user uses the correct encryption
+- Users are now reminded to change password if the password is set by admin
 
 ## CHANGES in v0.2.6
 

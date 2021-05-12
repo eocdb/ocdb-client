@@ -1,7 +1,10 @@
 import json
 import os
+import stat
 from abc import ABCMeta, abstractmethod
 from typing import Any, Dict
+
+from ocdb.const import CONFIG_FILE_MODE, CONFIG_DIR_MODE
 
 Config = Dict[str, Any]
 
@@ -63,3 +66,7 @@ class JsonConfigStore(ConfigStore):
             os.makedirs(dir_path, exist_ok=True)
         with open(self.file_path, 'w') as fp:
             json.dump(config, fp, indent=4)
+
+        if dir_path:
+            os.chmod(dir_path, CONFIG_DIR_MODE)
+        os.chmod(self.file_path, CONFIG_FILE_MODE)

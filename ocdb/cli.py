@@ -307,25 +307,17 @@ def update_user(ctx, username: str, key: str, value: str):
 
 
 @click.command(name="pwd")
-@click.option('--username', '-u', metavar='<username>', help='Username', prompt=True)
-@click.option('--password', '-p', metavar='<password>', help='New Password',
-              prompt=True, hide_input=True, confirmation_prompt=True)
-@click.pass_context
-def change_login(ctx, username: str, password: str):
-    """Set the password for an existing user"""
-    result = ctx.obj.change_user_login(username=username, password=None, new_password=password)
-    _dump_json(result)
-
-
-@click.command(name="ownpwd")
-@click.option('--old-password', '-op', metavar='<old-password>', help='Old Password',
+@click.argument('username', metavar='<username>', required=False)
+@click.option('--password', '-p', metavar='<password>', help='Password',
               prompt=True, hide_input=True)
-@click.option('--password', '-p', metavar='<password>', help='New Password',
+@click.option('--new-password', '-p', metavar='<new_password>', help='New Password',
               prompt=True, hide_input=True, confirmation_prompt=True)
 @click.pass_context
-def change_own_login(ctx, old_password: str, password: str):
+def change_login(ctx, username: str, password: str, new_password: str):
     """Set the password for an existing user"""
-    result = ctx.obj.change_user_login(username=None, password=old_password, new_password=password)
+    if username is None:
+        username = ctx.whoami()
+    result = ctx.obj.change_user_login(username=username, password=password, new_password=new_password)
     _dump_json(result)
 
 
@@ -343,7 +335,7 @@ def login_user(ctx, username: str, password: str):
 @click.pass_context
 def whoami_user(ctx):
     """Who am I"""
-    result = ctx.obj.whoami_user()
+    result = ctx.obj.whoami()
     _dump_json(result)
 
 
@@ -449,7 +441,6 @@ sbmfile.add_command(validate_submission_file)
 
 user.add_command(add_user)
 user.add_command(update_user)
-user.add_command(change_own_login)
 user.add_command(change_login)
 user.add_command(get_user)
 user.add_command(delete_user)
