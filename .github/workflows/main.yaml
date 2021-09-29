@@ -40,6 +40,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          mamba-version: "*"
       - name: publish-to-conda
+        shell: bash -l {0}
         run: |
+          mamba install anaconda-client
           bash conda/conda_upload.sh
