@@ -43,8 +43,10 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v2
         with:
           mamba-version: "*"
+          activate-environment: base
       - name: publish-to-conda
         shell: bash -l {0}
         run: |
           mamba install anaconda-client
+          conda build -c conda-forge recipe
           bash conda/conda_upload.sh
