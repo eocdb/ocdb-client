@@ -44,7 +44,7 @@ jobs:
         with:
           channel: default, conda-forge
       - name: publish-to-conda
-        if: ${{ github.event_name == 'release' }}
+#        if: ${{ github.event_name == 'release' }}
         shell: bash -l {0}
         run: |
           conda install anaconda-client
