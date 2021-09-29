@@ -47,6 +47,6 @@ jobs:
 #        if: ${{ github.event_name == 'release' }}
         shell: bash -l {0}
         run: |
-          conda install anaconda-client
+          conda install anaconda-client conda-build
           conda build -c conda-forge recipe
           bash conda/conda_upload.sh
