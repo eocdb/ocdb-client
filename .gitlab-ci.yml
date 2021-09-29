@@ -32,7 +32,7 @@ build1:
     - python setup.py install
 
 build2:
-  stage: build-conda-package
+  stage: build
   script:
       - conda build -c conda-forge recipe
 
