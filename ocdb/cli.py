@@ -47,6 +47,7 @@ def conf(ctx, name, value):
 @click.pass_context
 def upload_submission(ctx, path: str, dataset_files: Sequence[str], doc_files: Sequence[str],
                       submission_id: str, publication_date: str, allow_publication: bool):
+    """ Upload submission files."""
     validation_results = ctx.obj.upload_submission(path=path, dataset_files=dataset_files,
                                                    doc_files=doc_files, submission_id=submission_id,
                                                    publication_date=publication_date,
@@ -154,7 +155,7 @@ def validate_submission_file(ctx, file):
 @click.argument('submission-id', metavar='<submission-id>', required=True)
 @click.pass_context
 def get_datasets_by_submission(ctx, submission_id):
-    """Get datasets by submission <submission_id>"""
+    """Get datasets by submission <submission_id>."""
     result = ctx.obj.get_datasets_by_submission(submission_id=submission_id)
     _dump_json(result)
 
@@ -163,7 +164,7 @@ def get_datasets_by_submission(ctx, submission_id):
 @click.argument('submission-id', metavar='<submission-id>', required=True)
 @click.pass_context
 def delete_datasets_by_submission(ctx, submission_id):
-    """Delete datasets by <submission_id>"""
+    """Delete datasets by <submission_id>."""
     result = ctx.obj.delete_datasets_by_submission(submission_id=submission_id)
     _dump_json(result)
 
@@ -314,9 +315,9 @@ def update_user(ctx, username: str, key: str, value: str):
               prompt=True, hide_input=True, confirmation_prompt=True)
 @click.pass_context
 def change_login(ctx, username: str, password: str, new_password: str):
-    """Set the password for an existing user"""
+    """Set the password for an existing user."""
     if username is None:
-        username = ctx.whoami()
+        username = ctx.obj.whoami()['name']
     result = ctx.obj.change_user_login(username=username, password=password, new_password=new_password)
     _dump_json(result)
 
@@ -326,15 +327,31 @@ def change_login(ctx, username: str, password: str, new_password: str):
 @click.option('--password', '-p', metavar='<password>', help='Password', prompt=True, hide_input=True)
 @click.pass_context
 def login_user(ctx, username: str, password: str):
-    """Login a user"""
+    """Login."""
     result = ctx.obj.login_user(username, password)
+    _dump_json(result)
+
+
+@click.command(name="version")
+@click.pass_context
+def version(ctx):
+    """Get the version of the client."""
+    result = ctx.obj.version()
+    _dump_json(result)
+
+
+@click.command(name="info")
+@click.pass_context
+def info(ctx):
+    """Get software infos."""
+    result = ctx.obj.info()
     _dump_json(result)
 
 
 @click.command(name="whoami")
 @click.pass_context
 def whoami_user(ctx):
-    """Who am I"""
+    """Get current user."""
     result = ctx.obj.whoami()
     _dump_json(result)
 
@@ -342,7 +359,7 @@ def whoami_user(ctx):
 @click.command(name="list")
 @click.pass_context
 def list_user(ctx):
-    """List users"""
+    """List users."""
     result = ctx.obj.list_user()
     _dump_json(result)
 
@@ -359,7 +376,7 @@ def logout_user(ctx):
 @click.argument('username', metavar='<username>', required=True)
 @click.pass_context
 def get_user(ctx, username: str):
-    """Get user <username>."""
+    """Get user info of <username>."""
     result = ctx.obj.get_user(username)
     _dump_json(result)
 
@@ -368,7 +385,7 @@ def get_user(ctx, username: str):
 @click.argument('username', metavar='<username>', required=True)
 @click.pass_context
 def delete_user(ctx, username: str):
-    """Delete user by <username>."""
+    """Delete user <username>."""
     result = ctx.obj.delete_user(username)
     _dump_json(result)
 
@@ -410,19 +427,20 @@ def user():
 
 cli.add_command(conf)
 cli.add_command(ds)
-# cli.add_command(df)
 cli.add_command(sbm)
 cli.add_command(sbmfile)
 cli.add_command(user)
 cli.add_command(show_license)
+cli.add_command(version)
+cli.add_command(info)
+
+cli.add_command(whoami_user)
+cli.add_command(login_user)
+cli.add_command(logout_user)
 
 ds.add_command(find_datasets)
 ds.add_command(download_datasets)
 ds.add_command(get_dataset)
-# ds.add_command(add_dataset)
-# ds.add_command(delete_dataset)
-# ds.add_command(update_dataset)
-# ds.add_command(list_datasets)
 ds.add_command(delete_dataset)
 ds.add_command(list_datasets)
 ds.add_command(get_datasets_by_submission)

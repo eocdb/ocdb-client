@@ -475,18 +475,9 @@ class OCDBApi(Api):
         :return: A message from the server
         """
 
-        current_user = self.whoami()
+        password = utils.encrypt(password)
 
-        salt = self.get_config_param('password-salt')
-        password = utils.encrypt(password, salt=salt)
-
-        if username == current_user:
-            import os
-            salt = os.urandom(32)
-            new_password = utils.encrypt(new_password, salt=salt)
-            self.set_config_param('password-salt', salt, write=True)
-        else:
-            new_password = utils.encrypt(new_password)
+        new_password = utils.encrypt(new_password)
 
         data = json.dumps({'username': username, 'oldpassword': password, 'newpassword1': new_password,
                            'newpassword2': new_password}).encode('utf-8')
@@ -532,13 +523,7 @@ class OCDBApi(Api):
         :return: A JSON representation of the user
         """
 
-        salt = self.get_config_param('password-salt')
-
-        if salt:
-            password = utils.encrypt(password, salt)
-        else:
-            print("You seem to run on an initial Password. Please consider to change.")
-            password = utils.encrypt(password)
+        password = utils.encrypt(password)
 
         data = {'username': username, 'password': password, 'client-version': VERSION}
         data = json.dumps(data).encode('utf-8')
@@ -572,6 +557,16 @@ class OCDBApi(Api):
             return json.load(response)
 
     # Local configuration access
+    def version(self):
+        from ocdb.version import VERSION
+
+        return {"ocdb-cli version": VERSION}
+
+    # Local configuration access
+    def info(self):
+        from ocdb.version import VERSION, DESCRIPTION, NAME, LICENSE_TEXT, DOCS_URL
+
+        return {"Name": NAME, "Version": VERSION, "Description": DESCRIPTION, "Docs": DOCS_URL, "License": LICENSE_TEXT}
 
     @property
     def config(self) -> Config:
