@@ -43,8 +43,8 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v2
         with:
           channel: default, conda-forge
-          activate-environment: base
       - name: publish-to-conda
+        if: ${{ github.event_name == 'release' }}
         shell: bash -l {0}
         run: |
           conda install anaconda-client
