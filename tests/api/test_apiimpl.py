@@ -436,11 +436,4 @@ class ApiUserTest(ApiTest):
         # Check whether the client creates a salt when the user changes own password
         self.api.change_user_login('helge', 'passwd1', 'passwd2')
 
-        res = self.api.get_config_param('password-salt')
-
-        self.assertIsNotNone(res)
-        self.assertIsInstance(res, bytes)
-
-
-#    def test_user_change_own_pwd(self):
 

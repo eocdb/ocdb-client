@@ -502,7 +502,7 @@ class OCDBApi(Api):
         :return: The user name
         """
         request = self._make_request(f'/users/login', method="GET")
-        print(request.full_url)
+
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
@@ -613,7 +613,7 @@ class OCDBApi(Api):
 
         if self.verbose:
             print('Connecting to', url)
-        print(url)
+
         request = urllib.request.Request(url, data=data, headers=headers, method=method)
         request.add_header("User-Agent", USER_AGENT)
         return request
