@@ -1,4 +1,4 @@
-## CHANGES in v0.2.7 (in development)
+## CHANGES in v0.2.7
 
 - Improved password encryption
 - Config files get now user read only permissions 
