@@ -46,6 +46,5 @@ test1:
 deploy1:
   stage: deploy
   script:
-    - export CONDA_UPLOAD_TOKEN=
     - bash conda/conda_upload.sh
 
