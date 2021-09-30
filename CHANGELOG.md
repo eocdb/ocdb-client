@@ -1,3 +1,7 @@
+## CHANGES in v0.2.8
+
+- Sends now information that is it a command line client when logging in 
+
 ## CHANGES in v0.2.7
 
 - Improved password encryption
@@ -5,6 +9,8 @@
 - Client is now sending version info to server when logging in to ensure
   that the user uses the correct encryption
 - Added new command allowing to get the version general info about the client
+- Updated API version to info
+- The client is now tied to API version (tag 'v0')
 
 ## CHANGES in v0.2.6
 

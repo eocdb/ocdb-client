@@ -525,7 +525,7 @@ class OCDBApi(Api):
 
         password = utils.encrypt(password)
 
-        data = {'username': username, 'password': password, 'client-version': VERSION}
+        data = {'username': username, 'password': password, 'client_version': VERSION, 'client': 'cli'}
         data = json.dumps(data).encode('utf-8')
 
         request = self._make_request(f'/users/login', data=data, method="POST")
@@ -566,7 +566,7 @@ class OCDBApi(Api):
     def info(self):
         from ocdb.version import VERSION, DESCRIPTION, NAME, LICENSE_TEXT, DOCS_URL
 
-        return {"Name": NAME, "Version": VERSION, "Description": DESCRIPTION, "Docs": DOCS_URL, "License": LICENSE_TEXT}
+        return {"Name": NAME, "Version": VERSION, "API Version": API_VERSION_TAG, "Description": DESCRIPTION, "Docs": DOCS_URL, "License": LICENSE_TEXT}
 
     @property
     def config(self) -> Config:
