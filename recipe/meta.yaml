@@ -6,7 +6,7 @@ package:
   version: "{{ version }}"
 
 source:
-  url: "https://github.com/eocdb/{{ name }}/archive/v{{ version }}.tar.gz"
+  url: "https://github.com/eocdb/e{{ name }}/archive/v{{ version }}.tar.gz"
 
 build:
   number: 0
