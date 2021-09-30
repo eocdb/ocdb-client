@@ -35,7 +35,7 @@ jobs:
           pytest --cov=./ --cov-report=xml
   publish:
     env:
-      CONDA_UPLOAD_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
+      CONDA_UPLOAD_TOKEN: ${{ secrets.CONDA_UPLOAD_TOKEN }}
     needs: unittest
     runs-on: ubuntu-latest
     steps:
@@ -49,4 +49,4 @@ jobs:
         run: |
           conda install anaconda-client conda-build
           conda build -c conda-forge recipe
-          bash conda/conda_upload.sh
+          . conda/conda_upload.sh
