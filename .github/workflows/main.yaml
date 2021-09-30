@@ -35,7 +35,7 @@ jobs:
           pytest --cov=./ --cov-report=xml
   publish:
     env:
-      ANACONDA_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
+      CONDA_UPLOAD_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
     needs: unittest
     runs-on: ubuntu-latest
     steps:
@@ -44,7 +44,7 @@ jobs:
         with:
           channel: default, conda-forge
       - name: publish-to-conda
-        if: ${{ github.event_name == 'release' }}
+#        if: ${{ github.event_name == 'release' }}
         shell: bash -l {0}
         run: |
           conda install anaconda-client conda-build
