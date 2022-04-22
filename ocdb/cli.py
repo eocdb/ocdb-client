@@ -309,9 +309,9 @@ def update_user(ctx, username: str, key: str, value: str):
 
 @click.command(name="pwd")
 @click.argument('username', metavar='<username>', required=False)
-@click.option('--password', '-p', metavar='<password>', help='Password',
+@click.option('--password', '-p', metavar='<password>', help='Current password (your password if you are admin)',
               prompt=True, hide_input=True)
-@click.option('--new-password', '-p', metavar='<new_password>', help='New Password',
+@click.option('--new-password', '-p', metavar='<new_password>', help='New password',
               prompt=True, hide_input=True, confirmation_prompt=True)
 @click.pass_context
 def change_login(ctx, username: str, password: str, new_password: str):

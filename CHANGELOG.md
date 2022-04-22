@@ -1,3 +1,10 @@
+## CHANGES in v0.2.9
+
+- The client is now using verified SSL connections only.
+- Improved help message when changing passwords
+- `ocdb-cli user update` is now refusing to change the password. The server will also refuse doing that but only as of
+  version 0.1.20. Maybe this feature can be deprecated in future versions.
+
 ## CHANGES in v0.2.8
 
 - Sends now information that is it a command line client when logging in 

@@ -1,3 +1,4 @@
+import ssl
 import sys
 import pathlib
 import json
@@ -454,10 +455,16 @@ class OCDBApi(Api):
         Update user info
         :param username: The user name
         :param key: The field to be updated
-        :param value: The value the field is to be udpated by
+        :param value: The value the field is to be updated by
         :return: A message from the server
         """
         user = self.get_user(username)
+
+        if key == 'password':
+            return {
+                'message': 'Please use \'$ocdb-cli user pwd <user>\' instead of \'$ocdb-cli user update\' for changing the '
+                           'password of a user.'
+            }
 
         user[key] = value
 
@@ -471,7 +478,7 @@ class OCDBApi(Api):
         Update user info
         :param new_password: New Password
         :param password: Old Password if user changes own password
-        :param username: The user name if admin changes for another user
+        :param username: The username if admin changes for another user
         :return: A message from the server
         """
 
