@@ -298,11 +298,12 @@ def add_user(ctx, username: str, password: str, first_name: str, last_name: str,
 @click.command(name="update")
 @click.option('--username', '-u', metavar='<username>', help='Username', required=True)
 @click.option('--key', '-k', metavar='<key>', help='Key (e.g. name)', required=True)
-@click.option('--value', '-v', metavar='<value>', help='Value for the field. Can be username, password, first_name, '
+@click.option('--value', '-v', metavar='<value>', help='Value for the field. Can be username, first_name, '
                                                        'last_name, email, phone, roles', required=True)
 @click.pass_context
 def update_user(ctx, username: str, key: str, value: str):
     """Update an existing user"""
+    # Todo: Check syntax. What about (username=username, key=key, value=value)?
     result = ctx.obj.update_user(username, key, value)
     _dump_json(result)
 
@@ -318,6 +319,7 @@ def change_login(ctx, username: str, password: str, new_password: str):
     """Set the password for an existing user."""
     if username is None:
         username = ctx.obj.whoami()['name']
+    # Todo: Check syntax. What about (username, key=key, value=value)?
     result = ctx.obj.change_user_login(username=username, password=password, new_password=new_password)
     _dump_json(result)
 
@@ -328,6 +330,7 @@ def change_login(ctx, username: str, password: str, new_password: str):
 @click.pass_context
 def login_user(ctx, username: str, password: str):
     """Login."""
+    # Todo: Check syntax. What about (username=username, password=password)
     result = ctx.obj.login_user(username, password)
     _dump_json(result)
 
@@ -434,6 +437,7 @@ cli.add_command(show_license)
 cli.add_command(version)
 cli.add_command(info)
 
+# Todo: Check whether cli is correct for the following three methods. Otherwise use user.*?
 cli.add_command(whoami_user)
 cli.add_command(login_user)
 cli.add_command(logout_user)
@@ -462,6 +466,7 @@ user.add_command(update_user)
 user.add_command(change_login)
 user.add_command(get_user)
 user.add_command(delete_user)
+# Warning: The following three methods are redundant (see cli.*)!
 user.add_command(whoami_user)
 user.add_command(list_user)
 user.add_command(login_user)
