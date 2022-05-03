@@ -277,6 +277,11 @@ class OCDBApi(Api):
         :param status: The new status
         :return: A message from the server
         """
+        # Should we change the code to:
+        # 1. data = {'status': status, 'date': None} oder
+        # 2. data = {'status': status}
+        # 3. data = {'status': status, 'date': current_publication_date}    # Current publication date of existing submission could be None.
+        # However, Sabine, please check whether key 'date' is correct for 'publication_date' (see _extract_date() in _handlers.py)
         data = {'status': status, 'publication_date': '2020-01-01'}
         data = json.dumps(data).encode('utf-8')
 
