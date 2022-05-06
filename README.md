@@ -5,7 +5,7 @@
 >
 >License: MIT
 
-
+! keep synchronized with https://gitlab.eumetsat.int/OC/External/OC-DB/ocdb_docs/-/blob/master/docs/source/ocdb-api-cli.md !
 
 ## Installation
 
