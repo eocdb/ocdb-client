@@ -297,9 +297,9 @@ def add_user(ctx, username: str, password: str, first_name: str, last_name: str,
 
 @click.command(name="update")
 @click.option('--username', '-u', metavar='<username>', help='Username', required=True)
-@click.option('--key', '-k', metavar='<key>', help='Key (e.g. name)', required=True)
-@click.option('--value', '-v', metavar='<value>', help='Value for the field. Can be username, first_name, '
-                                                       'last_name, email, phone, roles (admin only)', required=True)
+@click.option('--key', '-k', metavar='<key>', help='Key (e.g. email)', required=True)
+@click.option('--value', '-v', metavar='<value>', help='Value for the field. Can be first_name, '
+                                                       'last_name, email, phone, roles', required=True)
 @click.pass_context
 def update_user(ctx, username: str, key: str, value: str):
     """Update an existing user"""
