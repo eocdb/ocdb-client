@@ -491,6 +491,7 @@ class OCDBApi(Api):
 
         new_password = utils.encrypt(new_password)
 
+        # Admin does not have to state oldpassword, to change pwd of other users!
         data = json.dumps({'username': username, 'oldpassword': password, 'newpassword1': new_password,
                            'newpassword2': new_password}).encode('utf-8')
 
