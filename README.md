@@ -1,9 +1,9 @@
 [![ocdb-cli](https://github.com/eocdb/ocdb-client/actions/workflows/main.yml/badge.svg)](https://github.com/eocdb/ocdb-client/actions/workflows/main.yml)
 
 # Copernicus Ocean Colour Database (OCDB) Python Client
->Copyright (C) 2019 Copernicus/EUMETSAT  
+> Copyright (C) 2019 Copernicus/EUMETSAT  
 >
->License: MIT
+> License: MIT
 
 ! keep synchronized with https://gitlab.eumetsat.int/OC/External/OC-DB/ocdb_docs/-/blob/master/docs/source/ocdb-api-cli.md !
 
@@ -13,6 +13,10 @@ It is possible to install the CLI and API via conda:
 
 ```bash
 conda install -c ocdb -c conda-forge ocdb-client
+
+# development installation
+# activate conda environment and then:
+   $ python -m pip install -e .
 ```
 
 Once that is done, you can test whether it is running by
