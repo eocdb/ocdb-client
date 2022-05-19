@@ -1,3 +1,10 @@
+## CHANGES in v0.2.10
+
+Requirements for OCDB version 2.2 added
+- user update
+- user pwd
+- sbm status  
+  
 ## CHANGES in v0.2.9
 
 - The client is now using verified SSL connections only.
