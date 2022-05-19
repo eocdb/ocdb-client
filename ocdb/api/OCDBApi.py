@@ -282,7 +282,7 @@ class OCDBApi(Api):
         # 2. data = {'status': status}
         # 3. data = {'status': status, 'date': current_publication_date}    # Current publication date of existing submission could be None.
         # However, Sabine, please check whether key 'date' is correct for 'publication_date' (see _extract_date() in _handlers.py)
-        data = {'status': status, 'publication_date': '2020-01-01'}
+        data = {'status': status}
         data = json.dumps(data).encode('utf-8')
 
         request = self._make_request(f'/store/status/submission/{submission_id}', data=data, method="PUT")
