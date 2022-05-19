@@ -1,4 +1,4 @@
-## CHANGES in v0.2.10
+## CHANGES in v0.2.9b
 
 Requirements for OCDB version 2.2 added
 - user update
