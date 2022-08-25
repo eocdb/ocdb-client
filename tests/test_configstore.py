@@ -29,18 +29,22 @@ class ConfigStoreTest(unittest.TestCase):
 
         dir_path = '_test_config_store'
         file_path = f'{dir_path}/config_store.json'
-        if os.path.exists(file_path):
-            os.remove(file_path)
-        if os.path.exists(dir_path):
-            os.rmdir(dir_path)
-        self._test_config_store(JsonConfigStore(file_path))
-        self.assertTrue(os.path.exists(file_path))
-        mode = stat.S_IMODE(os.lstat(file_path).st_mode)
-        self.assertEqual(mode, CONFIG_FILE_MODE)
-        mode = stat.S_IMODE(os.lstat(dir_path).st_mode)
-        self.assertEqual(mode, CONFIG_DIR_MODE)
+        try:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            if os.path.exists(dir_path):
+                os.rmdir(dir_path)
+            self._test_config_store(JsonConfigStore(file_path))
+            self.assertTrue(os.path.exists(file_path))
+            self.assertTrue(os.access(file_path, os.R_OK))
+            self.assertTrue(os.access(file_path, os.W_OK))
+            # self.assertTrue(os.access(file_path, os.X_OK))
+            self.assertTrue(os.access(dir_path, os.R_OK))
+            self.assertTrue(os.access(dir_path, os.W_OK))
+            # self.assertTrue(os.access(dir_path, os.X_OK))
+        finally:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            if os.path.exists(dir_path):
+                os.rmdir(dir_path)
 
-        if os.path.exists(file_path):
-            os.remove(file_path)
-        if os.path.exists(dir_path):
-            os.rmdir(dir_path)
