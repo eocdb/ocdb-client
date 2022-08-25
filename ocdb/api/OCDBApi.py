@@ -463,13 +463,18 @@ class OCDBApi(Api):
         :param value: The value the field is to be updated by
         :return: A message from the server
         """
-        user = self.get_user(username)
-
         if key == 'password':
             return {
-                'message': 'Please use \'$ocdb-cli user pwd <user>\' instead of \'$ocdb-cli user update\' for changing the '
-                           'password of a user.'
+                'message': 'Please use \'$ocdb-cli user pwd <user>\' instead of \'$ocdb-cli user update\' for'
+                           ' changing the password of a user.'
             }
+
+        if not (key in ['first_name', 'last_name', 'email', 'phone', 'roles']):
+            return {
+                'message': f'Changing the field "{key}" of an user is not allowed.'
+            }
+
+        user = self.get_user(username)
 
         user[key] = value
 

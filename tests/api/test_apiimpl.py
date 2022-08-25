@@ -11,7 +11,6 @@ from ocdb.api.OCDBApi import OCDBApi, USER_DIR, new_api
 from ocdb.configstore import MemConfigStore
 from tests.helpers import ClientTest, TEST_URL, TEST_API_VERSION
 
-
 TEST_DATA = """/begin_header
 /identifier_product_doi=10.5067/SeaBASS/SCOTIA_PRINCE_FERRY/DATA001
 /received=20040220
@@ -47,7 +46,6 @@ TEST_DATA = """/begin_header
 20030603 14:00:38 43.7620 -66.4551 0.60 8.37
 20030603 14:00:38 43.7620 -66.4551 1.30 7.05
 """
-
 
 TEST_DATA_FILE_NAME = ""
 
@@ -224,8 +222,8 @@ class DatasetsApiTest(ApiTest):
             "records": [[]]
         }
         httpretty.register_uri(httpretty.GET,
-                               TEST_URL + "/ocdb/api/" + TEST_API_VERSION + ""
-                               "/datasets/BIGELOW/BALCH/gnats/chl/chl-s170604w.sub",
+                               TEST_URL + "/ocdb/api/" + TEST_API_VERSION
+                               + "/datasets/BIGELOW/BALCH/gnats/chl/chl-s170604w.sub",
                                status=200,
                                body=json.dumps(expected_response).encode("utf-8"))
         response = self.api.get_dataset_by_name(dataset_path="BIGELOW/BALCH/gnats/chl/chl-s170604w.sub", fmt='json')
@@ -234,8 +232,8 @@ class DatasetsApiTest(ApiTest):
 
         # Force failure
         httpretty.register_uri(httpretty.GET,
-                               TEST_URL + "/ocdb/api/" + TEST_API_VERSION + ""
-                               "/datasets/BIGELOW/BALCH/gnats/chl/chl-s170604w.sub",
+                               TEST_URL + "/ocdb/api/" + TEST_API_VERSION
+                               + "/datasets/BIGELOW/BALCH/gnats/chl/chl-s170604w.sub",
                                status=404)
         with self.assertRaises(HTTPError):
             self.api.get_dataset_by_name(dataset_path="BIGELOW/BALCH/gnats/chl/chl-s170604w.sub")
@@ -265,8 +263,8 @@ class DatasetsApiTest(ApiTest):
             }
         ]
         httpretty.register_uri(httpretty.GET,
-                               TEST_URL + "/ocdb/api/" + TEST_API_VERSION + ""
-                               "/datasets/BIGELOW/BALCH/gnats",
+                               TEST_URL + "/ocdb/api/" + TEST_API_VERSION
+                               + "/datasets/BIGELOW/BALCH/gnats",
                                status=200,
                                body=json.dumps(expected_response).encode("utf-8"))
         response = self.api.list_datasets_in_path(dataset_path="BIGELOW/BALCH/gnats")
@@ -275,8 +273,8 @@ class DatasetsApiTest(ApiTest):
 
         # Force failure
         httpretty.register_uri(httpretty.GET,
-                               TEST_URL + "/ocdb/api/" + TEST_API_VERSION + ""
-                               "/datasets/IGELOW/ELCH/gnitz",
+                               TEST_URL + "/ocdb/api/" + TEST_API_VERSION
+                               + "/datasets/IGELOW/ELCH/gnitz",
                                status=404)
         with self.assertRaises(HTTPError):
             self.api.list_datasets_in_path(dataset_path="IGELOW/ELCH/gnitz")
@@ -330,6 +328,32 @@ class ConfigApiTest(ApiTest):
         self.assertEqual('http://localhost:2385/ocdb/api/' + TEST_API_VERSION + '/datasets', api._make_url('/datasets'))
 
 
+class OCDBApi_update_user_Tests(unittest.TestCase):
+
+    def setUp(self) -> None:
+        self.api = OCDBApi(server_url="https://bibosrv", config_store=MemConfigStore(server_url="https://bertsrv"))
+
+    def test__update_user__changing_the_password_is_not_allowed(self):
+        result = self.api.update_user(username='sabine', key='password', value='someone23')
+        expected = {'message': "Please use '$ocdb-cli user pwd <user>' instead of '$ocdb-cli user "
+                               "update' for changing the password of a user."}
+        self.assertEqual(result, expected)
+
+    def test__update_user__changing_the_id_is_not_allowed(self):
+        result = self.api.update_user(username='sabine', key='id', value='23')
+        expected = {
+            'message': 'Changing the field "id" of an user is not allowed.'
+        }
+        self.assertEqual(result, expected)
+
+    def test__update_user__changing_the_name_is_not_allowed(self):
+        result = self.api.update_user(username='sabine', key='name', value='new_name')
+        expected = {
+            'message': 'Changing the field "name" of an user is not allowed.'
+        }
+        self.assertEqual(result, expected)
+
+
 class ApiImplTest(ApiTest):
 
     def setUp(self):
@@ -347,7 +371,7 @@ class ApiImplTest(ApiTest):
         api = OCDBApi()
         self.assertIsNotNone(api.config)
         # Don't understand
-        #self.assertIsNone(api.server_url)
+        # self.assertIsNone(api.server_url)
 
         api = OCDBApi(server_url="https://bibosrv", config_store=MemConfigStore(server_url="https://bertsrv"))
         self.assertIsNotNone(api.config)
@@ -435,5 +459,3 @@ class ApiUserTest(ApiTest):
 
         # Check whether the client creates a salt when the user changes own password
         self.api.change_user_login('helge', 'passwd1', 'passwd2')
-
-
