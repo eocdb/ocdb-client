@@ -289,7 +289,15 @@ def cli(ctx, server_url: str, verbose: bool):
 @click.pass_context
 def add_user(ctx, username: str, password: str, first_name: str, last_name: str, email: str, phone: str,
              roles: Sequence[str]):
-    """Add a user"""
+    """
+        Add a user
+
+        If you want to add a user with more than one role, use a "-r" option per role.
+
+        Example:
+
+        ocdb-cli user add -u <name> -p <pw> -em <email> -r admin -r submit
+    """
     result = ctx.obj.add_user(username=username, password=password, first_name=first_name,
                               last_name=last_name, email=email, phone=phone, roles=roles)
     _dump_json(result)
