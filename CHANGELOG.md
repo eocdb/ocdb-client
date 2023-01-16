@@ -1,3 +1,11 @@
+## CHANGES in v0.2.11
+
+- Add information, that a role or roles on an user can only be changed by administrator.
+- A description has been added to the method add_user which explains how to assign more than one role to the user.
+- some test only work on linux development engines ... fix that test also work on windows
+- ensure only the fields ['first_name', 'last_name', 'email', 'phone', 'roles'] can be changed on user update
+- replace xcube copy/paste failure text with ocdb text
+  
 ## CHANGES in v0.2.10
 
 Requirements for OCDB version 2.2 added
