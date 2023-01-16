@@ -307,7 +307,7 @@ def add_user(ctx, username: str, password: str, first_name: str, last_name: str,
 @click.option('--username', '-u', metavar='<username>', help='Username', required=True)
 @click.option('--key', '-k', type=click.Choice(['first_name', 'last_name', 'email', 'phone', 'roles'], case_sensitive=True) , metavar='<key>', help='Key (e.g. email)', required=True)
 @click.option('--value', '-v', metavar='<value>', help='Value for the field. Can be first_name, '
-                                                       'last_name, email, phone, roles', required=True)
+                                                       'last_name, email, phone, roles (admin only)', required=True)
 @click.pass_context
 def update_user(ctx, username: str, key: str, value: str):
     """Update an existing user"""
