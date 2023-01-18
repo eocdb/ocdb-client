@@ -1,5 +1,5 @@
 { % set name = "ocdb-client" % }
-{ % set version = "0.2.10" % }
+{ % set version = "0.2.11" % }
 
 package:
   name: "{{ name }}"
@@ -52,5 +52,5 @@ about:
 
 extra:
   recipe-maintainers:
-    - dzelge
-# oc-afb140dd-c435-4492-87c4-006721ce0d8b
+    - Uwe Lange <uwe.lange@brockmann-consult.de>
+    - Sabine Embacher <sabine.embacher@brockmann-consult.de>
