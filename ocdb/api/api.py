@@ -14,6 +14,22 @@ class Api(metaclass=ABCMeta):
     # Remote dataset access
 
     @abstractmethod
+    def upload_cal_char(self, cal_char_files: Union[str, Sequence[str]],
+                        doc_files: Optional[Union[str, Sequence[str]]]) -> JsonObj:
+        """Upload the given dataset and doc files and return a validation report for each dataset file."""
+
+    @abstractmethod
+    def get_fidrad_history_tail(self, num_lines: int) -> JsonObj:
+        """Returns the tail of the FidRadDB history file with a user defined maximum number of lines."""
+
+    @abstractmethod
+    def fidrad_history_search(self, search_string: str, max_num_lines: int) -> JsonObj:
+        """
+        Returns a grep like bottom up search result from the FidRadDB history file with
+        a user defined maximum number of lines.
+        """
+
+    @abstractmethod
     def upload_submission(self, path: str, dataset_files: Union[str, Sequence[str]],
                           doc_files: Optional[Union[str, Sequence[str]]],
                           submission_id: str, publication_date: str, allow_publication: bool) -> JsonObj:

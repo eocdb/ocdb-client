@@ -68,6 +68,54 @@ class OCDBApi(Api):
         self.verbose = False
 
     # Remote dataset access
+
+    def upload_cal_char(self, cal_char_files: Union[str, Sequence[str]],
+                        doc_files: Optional[Union[str, Sequence[str]]]) -> JsonObj:
+        """
+        Generate a submission by uploading Cal/Char files to the data store.
+        :param cal_char_files: A list of calibration or characterisation files
+        :param doc_files: A list of document file names
+        :return: A message from the server
+        """
+        cal_char_files = _ensure_sequence(cal_char_files)
+        doc_files = _ensure_sequence(doc_files)
+
+        form = MultiPartForm()
+        for cal_char_file in cal_char_files:
+            form.add_file(f'cal_char_files', os.path.basename(cal_char_file), cal_char_file, mime_type="text/plain")
+        for doc_file in doc_files:
+            form.add_file(f'docfiles', os.path.basename(doc_file), doc_file)
+
+        data = bytes(form)
+
+        request = self._make_request('/store/FidRadDB/upload/cal_char', data=data, method=form.method)
+        request.add_header('Content-type', form.content_type)
+        request.add_header('Content-length', f'{len(data)}')
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+
+    def get_fidrad_history_tail(self, num_lines: int) -> JsonObj:
+        """
+        Get the tail of the FidRadDb history with the user defined number of lines
+        :param num_lines: The number of lines
+        :return: A JSON object representing the history tail
+        """
+        request = self._make_request(f'/store/FidRadDB/history/tail/{num_lines}', method="GET")
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+
+    def fidrad_history_search(self, search_string: str, max_num_lines: int) -> JsonObj:
+        """
+        Returns a grep-like but bottom-up search result from the FidRadDB history file with a user-defined maximum
+        number of result lines.
+        :param search_string: The string to be searched for in the history.
+        :param max_num_lines: The maximum number of search results.
+        """
+        request = self._make_request(f'/store/FidRadDB/history/search/{search_string}/{max_num_lines}', method="GET")
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+
+
     def upload_submission(self, path: str, dataset_files: Union[str, Sequence[str]],
                           submission_id: str, doc_files: Optional[Union[str, Sequence[str]]] = None,
                           publication_date: Optional[str] = None,
@@ -247,7 +295,7 @@ class OCDBApi(Api):
 
     def get_submission(self, submission_id: str) -> JsonObj:
         """
-        Get a submission by teh user defined ID
+        Get a submission by the user defined ID
         :param submission_id: The submission ID
         :return: A JSON object representing the submission
         """

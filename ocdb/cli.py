@@ -32,6 +32,78 @@ def conf(ctx, name, value):
         _dump_json(config)
 
 
+@click.command('upload')
+@click.argument('cal-char-files', metavar='<cal-char-file> ...', required=True, nargs=-1)
+# @click.option('--doc-file', '-d', 'doc_files', metavar='<doc-file>', nargs=1,
+#               multiple=True,
+#               help="Labels all subsequent files as documentation files")
+@click.pass_context
+# def upload_cal_char(ctx, cal_char_files: Sequence[str], doc_files: Sequence[str]):
+def upload_cal_char(ctx, cal_char_files: Sequence[str]):
+    """ Upload fidraddb cal/char files.
+
+    \b
+    Please choose max 15 FidRadDB cal/char files.
+    The filenames must follow the syntax:
+       CP_[class or serial number]_[FileType]_[calibrationDate].txt
+    """
+    validation_results = ctx.obj.upload_cal_char(cal_char_files=cal_char_files,
+                                                 # doc_files=doc_files)
+                                                 doc_files=[])
+    warn_key = "Warning!"
+    warn_lines = None
+    if warn_key in validation_results:
+        warn_lines = validation_results.pop(warn_key)
+    _dump_json(validation_results)
+    print()
+    print(warn_key)
+    print('"' * len(warn_key))
+    for line in warn_lines:
+        print(line)
+
+
+@click.command(name="get-history-tail")
+@click.argument('num-lines', default='50')
+@click.pass_context
+def get_fidrad_history_tail(ctx, num_lines: str):
+    """Get history tail from FidRadDb <num_lines> (default 50 lines)."""
+    result = ctx.obj.get_fidrad_history_tail(num_lines)
+    if type(result) is list:
+        headline = "FidRadDB History Tail"
+        num_lines_info = f"({len(result)} lines)"
+        print()
+        print(headline, num_lines_info)
+        print('"' * len(headline))
+        for line in result:
+            print(line.strip())
+    else:
+        _dump_json(result)
+
+
+@click.command(name="history-search")
+@click.argument('search-string', required=True)
+@click.argument('max-num-lines', default=5)
+@click.pass_context
+def fidrad_history_search(ctx, search_string: str, max_num_lines):
+    """
+    Returns a grep-like but bottom-up search result from the FidRadDB history file with a user-defined maximum
+    number of result lines.
+    :param search_string: The string to be searched for in the history.
+    :param max_num_lines: The maximum number of search results.
+    """
+    result = ctx.obj.fidrad_history_search(search_string, max_num_lines)
+    if type(result) is list:
+        headline = f"FidRadDB Bottom-Up History Search for '{search_string}'"
+        num_lines_info = f"({len(result)} lines)"
+        print()
+        print(headline, num_lines_info)
+        print('"' * len(headline))
+        for line in result:
+            print(line.strip())
+    else:
+        _dump_json(result)
+
+
 @click.command(name='upload')
 @click.argument('path', metavar='<path>', required=True)
 @click.argument('dataset-files', metavar='<dataset-file> ...', required=True, nargs=-1)
@@ -407,6 +479,11 @@ def ds():
     Dataset management.
     """
 
+@click.group()
+def fidRadDB():
+    """
+    FidRadDB management
+    """
 
 @click.group()
 def sbm():
@@ -438,6 +515,7 @@ def user():
 
 cli.add_command(conf)
 cli.add_command(ds)
+cli.add_command(fidRadDB)
 cli.add_command(sbm)
 cli.add_command(sbmfile)
 cli.add_command(user)
@@ -457,6 +535,10 @@ ds.add_command(delete_dataset)
 ds.add_command(list_datasets)
 ds.add_command(get_datasets_by_submission)
 ds.add_command(delete_datasets_by_submission)
+
+fidRadDB.add_command(upload_cal_char)
+fidRadDB.add_command(get_fidrad_history_tail)
+fidRadDB.add_command(fidrad_history_search)
 
 sbm.add_command(update_submission_status)
 sbm.add_command(upload_submission)
