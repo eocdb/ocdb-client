@@ -3,7 +3,7 @@ from typing import Sequence, List, Optional
 
 import click
 
-from ocdb.api import JsonObj
+from ocdb.api import JsonObj, OCDBApi
 from ocdb.api.util import DATASET_TYPES
 from .version import VERSION, LICENSE_TEXT
 
@@ -15,6 +15,7 @@ def _dump_json(obj: JsonObj):
 @click.command()
 @click.argument('name', required=False)
 @click.argument('value', required=False)
+@click.help_option("--help", "-h")
 @click.pass_context
 def conf(ctx, name, value):
     """
@@ -22,21 +23,30 @@ def conf(ctx, name, value):
     Set configuration parameter NAME to VALUE, display configuration parameter NAME,
     or display all configuration parameters.
     """
+    api: OCDBApi = ctx.obj
     if name is not None and value is not None:
-        ctx.obj.set_config_param(name, value, write=True)
+        api.set_config_param(name, value, write=True)
     else:
         if name is not None:
-            config = {name: ctx.obj.get_config_param(name)}
+            config = {name: api.get_config_param(name)}
         else:
-            config = ctx.obj.config
+            config = api.config
         _dump_json(config)
 
 
+def _check_args(ctx, param, value):
+    max_num_args = 15
+    if len(value) > max_num_args:
+        raise click.BadParameter(f"A maximum of {max_num_args} files per upload are allowed.")
+    return value
+
+
 @click.command('upload')
-@click.argument('cal-char-files', metavar='<cal-char-file> ...', required=True, nargs=-1)
+@click.argument('cal-char-files', metavar='<cal-char-file> ...', required=True, nargs=-1, callback=_check_args)
 # @click.option('--doc-file', '-d', 'doc_files', metavar='<doc-file>', nargs=1,
 #               multiple=True,
 #               help="Labels all subsequent files as documentation files")
+@click.help_option("--help", "-h")
 @click.pass_context
 # def upload_cal_char(ctx, cal_char_files: Sequence[str], doc_files: Sequence[str]):
 def upload_cal_char(ctx, cal_char_files: Sequence[str]):
@@ -45,29 +55,33 @@ def upload_cal_char(ctx, cal_char_files: Sequence[str]):
     \b
     Please choose max 15 FidRadDB cal/char files.
     The filenames must follow the syntax:
-       CP_[class or serial number]_[FileType]_[calibrationDate].txt
+       CP_[class or serial number]_[file type]_[calibrationDate].txt
     """
-    validation_results = ctx.obj.upload_cal_char(cal_char_files=cal_char_files,
-                                                 # doc_files=doc_files)
-                                                 doc_files=[])
+    api: OCDBApi = ctx.obj
+    results = api.fidrad_upload(cal_char_files=cal_char_files,
+                                # doc_files=doc_files)
+                                doc_files=[])
     warn_key = "Warning!"
     warn_lines = None
-    if warn_key in validation_results:
-        warn_lines = validation_results.pop(warn_key)
-    _dump_json(validation_results)
-    print()
-    print(warn_key)
-    print('"' * len(warn_key))
-    for line in warn_lines:
-        print(line)
+    if warn_key in results:
+        warn_lines = results.pop(warn_key)
+    _dump_json(results)
+    if warn_lines:
+        print()
+        print(warn_key)
+        print('"' * len(warn_key))
+        for line in warn_lines:
+            print(line)
 
 
-@click.command(name="get-history-tail")
+@click.command(name="history-tail")
 @click.argument('num-lines', default='50')
+@click.help_option("--help", "-h")
 @click.pass_context
 def get_fidrad_history_tail(ctx, num_lines: str):
     """Get history tail from FidRadDb <num_lines> (default 50 lines)."""
-    result = ctx.obj.get_fidrad_history_tail(num_lines)
+    api: OCDBApi = ctx.obj
+    result = api.fidrad_history_tail(num_lines)
     if type(result) is list:
         headline = "FidRadDB History Tail"
         num_lines_info = f"({len(result)} lines)"
@@ -76,13 +90,17 @@ def get_fidrad_history_tail(ctx, num_lines: str):
         print('"' * len(headline))
         for line in result:
             print(line.strip())
+        print('"' * len(headline))
+        print(headline, num_lines_info)
+        print()
     else:
         _dump_json(result)
 
 
 @click.command(name="history-search")
 @click.argument('search-string', required=True)
-@click.argument('max-num-lines', default=5)
+@click.argument('max-num-lines', default=20)
+@click.help_option("--help", "-h")
 @click.pass_context
 def fidrad_history_search(ctx, search_string: str, max_num_lines):
     """
@@ -91,7 +109,8 @@ def fidrad_history_search(ctx, search_string: str, max_num_lines):
     :param search_string: The string to be searched for in the history.
     :param max_num_lines: The maximum number of search results.
     """
-    result = ctx.obj.fidrad_history_search(search_string, max_num_lines)
+    api: OCDBApi = ctx.obj
+    result = api.fidrad_history_search(search_string, max_num_lines)
     if type(result) is list:
         headline = f"FidRadDB Bottom-Up History Search for '{search_string}'"
         num_lines_info = f"({len(result)} lines)"
@@ -100,8 +119,76 @@ def fidrad_history_search(ctx, search_string: str, max_num_lines):
         print('"' * len(headline))
         for line in result:
             print(line.strip())
+        print('"' * len(headline))
+        print(headline, num_lines_info)
+        print()
     else:
         _dump_json(result)
+
+
+@click.command(name="list")
+@click.argument('name-part', default='__ALL__')
+@click.help_option("--help", "-h")
+@click.pass_context
+def fidrad_list_files(ctx, name_part: str):
+    """
+    \b
+    Lists the files available on the server.
+    If a name-part is specified, only files containing this part are returned.
+
+    :param name_part: The name-part to search for.
+    """
+    api: OCDBApi = ctx.obj
+    result = api.fidrad_list_files(name_part)
+    if type(result) is list:
+        indent = " " * 4
+        headline = "Files on Server"
+        print()
+        print(indent + headline)
+        print(indent + '"' * len(headline))
+        result.sort()
+        for line in result:
+            print(indent + line.strip())
+        print()
+        print(indent + f"Num files: {len(result)}" + ("" if name_part == "__ALL__" else
+                                                      f" ... (filtered by '{name_part}')"))
+        print()
+    else:
+        _dump_json(result)
+
+
+@click.command(name="delete")
+@click.argument('file-name', required=True)
+@click.help_option("--help", "-h")
+@click.pass_context
+def fidrad_delete_file(ctx, file_name: str):
+    """
+    Will delete the file with the user defined name on the server.
+    :param file_name: The name of the file to be deleted
+    """
+    api: OCDBApi = ctx.obj
+    result = api.fidrad_delete_file(file_name)
+    _dump_json(result)
+
+
+@click.command(name="download")
+@click.argument('file-name', metavar='<file_name>', required=True)
+# @click.option('--output-dir', "-o, default=".")\
+@click.option('--output-dir', '-o', metavar='<output_dir>', nargs=1,
+              multiple=False, default="'.'", show_default=True,
+              help="The directory, to which the file should be written.")
+@click.help_option("--help", "-h")
+@click.pass_context
+def fidrad_download_file(ctx, file_name: str, output_dir: str):
+    """
+    Will download the file with the user defined name from the server.
+
+    :param file_name: The name of the file to be downloaded.
+    """
+    api: OCDBApi = ctx.obj
+    output_dir = output_dir.replace('\'', '')
+    result = api.fidrad_download_file(file_name, output_dir)
+    _dump_json(result)
 
 
 @click.command(name='upload')
@@ -116,6 +203,7 @@ def fidrad_history_search(ctx, search_string: str, max_num_lines):
               help="set date for publication")
 @click.option('--allow-publication', '-ap', 'allow_publication', metavar='<allow-publication>', is_flag=True,
               help="Specify whether you agree to publish the data")
+@click.help_option("--help", "-h")
 @click.pass_context
 def upload_submission(ctx, path: str, dataset_files: Sequence[str], doc_files: Sequence[str],
                       submission_id: str, publication_date: str, allow_publication: bool):
@@ -131,6 +219,7 @@ def upload_submission(ctx, path: str, dataset_files: Sequence[str], doc_files: S
 @click.option('--dataset-id', '-id', help='Specify dataset IDs', multiple=True)
 @click.option('--download-docs', '-docs', metavar='<docs>', help='Get docs, too', is_flag=True)
 @click.option('--out-file', '-o', metavar='<out-file>', help='Specify name for the outfile (zip)')
+@click.help_option("--help", "-h")
 @click.pass_context
 def download_datasets(ctx, dataset_id: List[str], download_docs: bool, out_file: str):
     """Download dataset files --dataset-id <id> [--dataset-id <id> ...] --download-docs [--out-file <out-file>]."""
@@ -147,6 +236,7 @@ def download_datasets(ctx, dataset_id: List[str], download_docs: bool, out_file:
               help='Dataset ID.')
 @click.option('--path', '-p', 'dataset_path', metavar='<path>',
               help='Dataset path of the form affil/project/cruise/name.')
+@click.help_option("--help", "-h")
 @click.pass_context
 def get_dataset(ctx, dataset_id: str, dataset_path: str):
     """Get dataset with given <id> or <path>."""
@@ -169,6 +259,7 @@ def get_dataset(ctx, dataset_id: str, dataset_path: str):
               help="Results offset. Offset of first result is 1.")
 @click.option('--count', metavar='<count>', type=int, default=1000,
               help="Maximum number of results.")
+@click.help_option("--help", "-h")
 @click.pass_context
 def find_datasets(ctx, expr, offset, count, query):
     """Find datasets using query expression <expr>."""
@@ -192,6 +283,7 @@ def find_datasets(ctx, expr, offset, count, query):
 
 @click.command(name="list")
 @click.argument('path', metavar='<path>')
+@click.help_option("--help", "-h")
 @click.pass_context
 def list_datasets(ctx, path):
     """List datasets in <path>."""
@@ -206,6 +298,7 @@ def list_datasets(ctx, path):
 # noinspection PyShadowingBuiltins
 @click.command(name="del")
 @click.argument('id', metavar='<id>')
+@click.help_option("--help", "-h")
 @click.pass_context
 def delete_dataset(ctx, id):
     """Delete dataset given by <id>."""
@@ -216,6 +309,7 @@ def delete_dataset(ctx, id):
 
 @click.command(name="val")
 @click.argument('file', metavar='<file name>', required=True)
+@click.help_option("--help", "-h")
 @click.pass_context
 def validate_submission_file(ctx, file):
     """Validate submission <file> before upload."""
@@ -225,6 +319,7 @@ def validate_submission_file(ctx, file):
 
 @click.command(name="get-by-sb")
 @click.argument('submission-id', metavar='<submission-id>', required=True)
+@click.help_option("--help", "-h")
 @click.pass_context
 def get_datasets_by_submission(ctx, submission_id):
     """Get datasets by submission <submission_id>."""
@@ -234,6 +329,7 @@ def get_datasets_by_submission(ctx, submission_id):
 
 @click.command(name="del-by-sb")
 @click.argument('submission-id', metavar='<submission-id>', required=True)
+@click.help_option("--help", "-h")
 @click.pass_context
 def delete_datasets_by_submission(ctx, submission_id):
     """Delete datasets by <submission_id>."""
@@ -243,6 +339,7 @@ def delete_datasets_by_submission(ctx, submission_id):
 
 @click.command(name="get")
 @click.argument('submission-id', metavar='<submission-id>', required=True)
+@click.help_option("--help", "-h")
 @click.pass_context
 def get_submission(ctx, submission_id: str):
     """Get submission <submission_id>."""
@@ -252,6 +349,7 @@ def get_submission(ctx, submission_id: str):
 
 @click.command(name="user")
 @click.argument('user-name', metavar='<user-name>', default=None, required=False)
+@click.help_option("--help", "-h")
 @click.pass_context
 def get_submissions_for_user(ctx, user_name: Optional[str]):
     """Get submissions for user <user_name>."""
@@ -261,6 +359,7 @@ def get_submissions_for_user(ctx, user_name: Optional[str]):
 
 @click.command(name="delete")
 @click.argument('submission-id', metavar='<submission-id>', required=True)
+@click.help_option("--help", "-h")
 @click.pass_context
 def delete_submission(ctx, submission_id: str):
     """Delete submission <submission_id>."""
@@ -271,6 +370,7 @@ def delete_submission(ctx, submission_id: str):
 @click.command(name="status")
 @click.option('--submission-id', '-s', metavar='<submission-id>', help='Specify submission ID', required=True)
 @click.option('--status', '-st', metavar='<status>', help='Specify new status', required=True)
+@click.help_option("--help", "-h")
 @click.pass_context
 def update_submission_status(ctx, submission_id: str, status: str):
     """Update submission status --submission-id <submission_id> --status <status>."""
@@ -282,6 +382,7 @@ def update_submission_status(ctx, submission_id: str, status: str):
 @click.option('--submission-id', '-s', metavar='<submission-id>', help='Specify submission ID', required=True)
 @click.option('--index', '-i', metavar='<index>', help='Specify submission file index', required=True)
 @click.option('--out-file', '-o', metavar='<out-file>', help='Specify name for the outfile (zip)')
+@click.help_option("--help", "-h")
 @click.pass_context
 def download_submission_file(ctx, submission_id: str, index: int, out_file: str):
     """Get submission file --submission-id <submission-id> --index <index> [--out-file <name>.zip]."""
@@ -292,6 +393,7 @@ def download_submission_file(ctx, submission_id: str, index: int, out_file: str)
 @click.command(name="get")
 @click.option('--submission-id', '-s', metavar='<submission-id>', help='Specify submission ID', required=True)
 @click.option('--index', '-s', metavar='<index>', help='Specify submission file index', required=True)
+@click.help_option("--help", "-h")
 @click.pass_context
 def get_submission_file(ctx, submission_id: str, index: int):
     """Get submission file --submission_id <submission_id> --index <index>."""
@@ -304,6 +406,7 @@ def get_submission_file(ctx, submission_id: str, index: int):
 @click.option('--submission-id', '-s', 'submission_id', metavar='<submission-id>', help="Give submission ID",
               required=True)
 @click.option('--index', '-i', metavar='<index>', help='Specify submission file index', required=True)
+@click.help_option("--help", "-h")
 @click.pass_context
 def update_submission_file(ctx, submission_id: str, file: str, index: int):
     """Upload multiple dataset and documentation files."""
@@ -317,6 +420,7 @@ def update_submission_file(ctx, submission_id: str, file: str, index: int):
               required=True)
 @click.option('--type', '-t', metavar='<type>', help='Specify type of new submission file',
               type=click.Choice(DATASET_TYPES), required=True)
+@click.help_option("--help", "-h")
 @click.pass_context
 def add_submission_file(ctx, submission_id: str, file: str, type: str):
     """Upload multiple dataset and documentation files."""
@@ -338,6 +442,7 @@ def show_license():
 @click.option('--server', 'server_url', metavar='<url>', envvar='OCDB_SERVER_URL', help='OCDB Server URL.')
 @click.option('--verbose', '-v', metavar='<verbose>', is_flag=True, help='OCDB client verbose reporting',
               required=False)
+@click.help_option("--help", "-h")
 @click.pass_context
 def cli(ctx, server_url: str, verbose: bool):
     """
@@ -358,6 +463,7 @@ def cli(ctx, server_url: str, verbose: bool):
 @click.option('--email', '-em', metavar='<email>', help='Email', required=True)
 @click.option('--phone', '-ph', metavar='<phone>', help='Phone', default='')
 @click.option('--roles', '-r', metavar='<roles>', help='Roles', multiple=True, required=True)
+@click.help_option("--help", "-h")
 @click.pass_context
 def add_user(ctx, username: str, password: str, first_name: str, last_name: str, email: str, phone: str,
              roles: Sequence[str]):
@@ -377,9 +483,12 @@ def add_user(ctx, username: str, password: str, first_name: str, last_name: str,
 
 @click.command(name="update")
 @click.option('--username', '-u', metavar='<username>', help='Username', required=True)
-@click.option('--key', '-k', type=click.Choice(['first_name', 'last_name', 'email', 'phone', 'roles'], case_sensitive=True) , metavar='<key>', help='Key (e.g. email)', required=True)
+@click.option('--key', '-k',
+              type=click.Choice(['first_name', 'last_name', 'email', 'phone', 'roles'], case_sensitive=True),
+              metavar='<key>', help='Key (e.g. email)', required=True)
 @click.option('--value', '-v', metavar='<value>', help='Value for the field. Can be first_name, '
                                                        'last_name, email, phone, roles (admin only)', required=True)
+@click.help_option("--help", "-h")
 @click.pass_context
 def update_user(ctx, username: str, key: str, value: str):
     """Update an existing user"""
@@ -394,6 +503,7 @@ def update_user(ctx, username: str, key: str, value: str):
               prompt=True, hide_input=True)
 @click.option('--new-password', '-p', metavar='<new_password>', help='New password',
               prompt=True, hide_input=True, confirmation_prompt=True)
+@click.help_option("--help", "-h")
 @click.pass_context
 def change_login(ctx, username: str, password: str, new_password: str):
     """Set the password for an existing user."""
@@ -407,6 +517,7 @@ def change_login(ctx, username: str, password: str, new_password: str):
 @click.command(name="login")
 @click.option('--username', '-u', metavar='<username>', help='Username', prompt=True)
 @click.option('--password', '-p', metavar='<password>', help='Password', prompt=True, hide_input=True)
+@click.help_option("--help", "-h")
 @click.pass_context
 def login_user(ctx, username: str, password: str):
     """Login."""
@@ -416,6 +527,7 @@ def login_user(ctx, username: str, password: str):
 
 
 @click.command(name="version")
+@click.help_option("--help", "-h")
 @click.pass_context
 def version(ctx):
     """Get the version of the client."""
@@ -424,6 +536,7 @@ def version(ctx):
 
 
 @click.command(name="info")
+@click.help_option("--help", "-h")
 @click.pass_context
 def info(ctx):
     """Get software infos."""
@@ -432,6 +545,7 @@ def info(ctx):
 
 
 @click.command(name="whoami")
+@click.help_option("--help", "-h")
 @click.pass_context
 def whoami_user(ctx):
     """Get current user."""
@@ -440,6 +554,7 @@ def whoami_user(ctx):
 
 
 @click.command(name="list")
+@click.help_option("--help", "-h")
 @click.pass_context
 def list_user(ctx):
     """List users."""
@@ -448,6 +563,7 @@ def list_user(ctx):
 
 
 @click.command(name="logout")
+@click.help_option("--help", "-h")
 @click.pass_context
 def logout_user(ctx):
     """Log out current user if logged in."""
@@ -457,6 +573,7 @@ def logout_user(ctx):
 
 @click.command(name="get")
 @click.argument('username', metavar='<username>', required=True)
+@click.help_option("--help", "-h")
 @click.pass_context
 def get_user(ctx, username: str):
     """Get user info of <username>."""
@@ -466,6 +583,7 @@ def get_user(ctx, username: str):
 
 @click.command(name="delete")
 @click.argument('username', metavar='<username>', required=True)
+@click.help_option("--help", "-h")
 @click.pass_context
 def delete_user(ctx, username: str):
     """Delete user <username>."""
@@ -474,18 +592,23 @@ def delete_user(ctx, username: str):
 
 
 @click.group()
+@click.help_option("--help", "-h")
 def ds():
     """
     Dataset management.
     """
 
+
 @click.group()
+@click.help_option("--help", "-h")
 def fidRadDB():
     """
     FidRadDB management
     """
 
+
 @click.group()
+@click.help_option("--help", "-h")
 def sbm():
     """
     Submission management.
@@ -493,6 +616,7 @@ def sbm():
 
 
 @click.group()
+@click.help_option("--help", "-h")
 def sbmfile():
     """
     Submission management.
@@ -500,6 +624,7 @@ def sbmfile():
 
 
 @click.group()
+@click.help_option("--help", "-h")
 def df():
     """
     Documentation files management.
@@ -507,6 +632,7 @@ def df():
 
 
 @click.group()
+@click.help_option("--help", "-h")
 def user():
     """
     User management.
@@ -539,6 +665,9 @@ ds.add_command(delete_datasets_by_submission)
 fidRadDB.add_command(upload_cal_char)
 fidRadDB.add_command(get_fidrad_history_tail)
 fidRadDB.add_command(fidrad_history_search)
+fidRadDB.add_command(fidrad_list_files)
+fidRadDB.add_command(fidrad_delete_file)
+fidRadDB.add_command(fidrad_download_file)
 
 sbm.add_command(update_submission_status)
 sbm.add_command(upload_submission)

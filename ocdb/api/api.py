@@ -14,12 +14,12 @@ class Api(metaclass=ABCMeta):
     # Remote dataset access
 
     @abstractmethod
-    def upload_cal_char(self, cal_char_files: Union[str, Sequence[str]],
-                        doc_files: Optional[Union[str, Sequence[str]]]) -> JsonObj:
+    def fidrad_upload(self, cal_char_files: Union[str, Sequence[str]],
+                      doc_files: Optional[Union[str, Sequence[str]]]) -> JsonObj:
         """Upload the given dataset and doc files and return a validation report for each dataset file."""
 
     @abstractmethod
-    def get_fidrad_history_tail(self, num_lines: int) -> JsonObj:
+    def fidrad_history_tail(self, num_lines: int) -> JsonObj:
         """Returns the tail of the FidRadDB history file with a user defined maximum number of lines."""
 
     @abstractmethod
@@ -28,6 +28,27 @@ class Api(metaclass=ABCMeta):
         Returns a grep like bottom up search result from the FidRadDB history file with
         a user defined maximum number of lines.
         """
+
+    @abstractmethod
+    def fidrad_list_files(self, name_part: str) -> JsonObj:
+        """
+        Lists the files available on the server. If a name-part is specified, only files containing this part are
+        returned.
+        """
+
+    @abstractmethod
+    def fidrad_delete_file(self, file_name: str) -> JsonObj:
+        """
+        Deletes the requested file.
+        """
+
+    def fidrad_download_file(self, file_name: str, output_dir: str) -> str:
+        """
+          Download a FidRadDB Cal/Char file with the user defined file_name to a user defined output directory.
+          :param file_name: The file_name to download from server.
+          :param output_dir: An output dir path.
+          :return: A message
+          """
 
     @abstractmethod
     def upload_submission(self, path: str, dataset_files: Union[str, Sequence[str]],

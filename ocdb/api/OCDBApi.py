@@ -10,6 +10,7 @@ import zipfile
 from typing import Any, Optional, Sequence, List, Union
 
 import pandas as pd
+from httpretty.http import HttpBaseClass
 
 from . import utils
 from .api import Api, Config, JsonObj
@@ -69,8 +70,8 @@ class OCDBApi(Api):
 
     # Remote dataset access
 
-    def upload_cal_char(self, cal_char_files: Union[str, Sequence[str]],
-                        doc_files: Optional[Union[str, Sequence[str]]]) -> JsonObj:
+    def fidrad_upload(self, cal_char_files: Union[str, Sequence[str]],
+                      doc_files: Optional[Union[str, Sequence[str]]]) -> JsonObj:
         """
         Generate a submission by uploading Cal/Char files to the data store.
         :param cal_char_files: A list of calibration or characterisation files
@@ -94,13 +95,13 @@ class OCDBApi(Api):
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
-    def get_fidrad_history_tail(self, num_lines: int) -> JsonObj:
+    def fidrad_history_tail(self, num_lines: int) -> JsonObj:
         """
         Get the tail of the FidRadDb history with the user defined number of lines
         :param num_lines: The number of lines
         :return: A JSON object representing the history tail
         """
-        request = self._make_request(f'/store/FidRadDB/history/tail/{num_lines}', method="GET")
+        request = self._make_request(f'/store/FidRadDB/history/tail/{num_lines}', method=HttpBaseClass.GET)
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
@@ -111,10 +112,64 @@ class OCDBApi(Api):
         :param search_string: The string to be searched for in the history.
         :param max_num_lines: The maximum number of search results.
         """
-        request = self._make_request(f'/store/FidRadDB/history/search/{search_string}/{max_num_lines}', method="GET")
+        quoted_search = urllib.parse.quote(search_string)
+        request = self._make_request(f'/store/FidRadDB/history/search/{quoted_search}/{max_num_lines}', method=HttpBaseClass.GET)
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
+    def fidrad_list_files(self, name_part: str) -> JsonObj:
+        """
+        Lists the files available on the server. If a name-part is specified, only files containing this part are
+        returned.
+        """
+        quoted_name_part = urllib.parse.quote(name_part)
+        request = self._make_request(f'/store/FidRadDB/list/files/{quoted_name_part}', method=HttpBaseClass.GET)
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+
+    def fidrad_delete_file(self, file_name: str) -> JsonObj:
+        """
+        Deletes the requested file.
+        """
+        quoted_filename = urllib.parse.quote(file_name)
+        request = self._make_request(f'/store/FidRadDB/delete/file/{quoted_filename}', method=HttpBaseClass.DELETE)
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+
+    def fidrad_download_file(self, file_name: str, output_dir: str) -> str:
+        """
+          Download a FidRadDB Cal/Char file with the user defined file_name to a user defined output directory.
+          :param file_name: The file_name to download from server.
+          :param output_dir: An output dir path.
+          :return: A message
+          """
+        quoted_filename = urllib.parse.quote(file_name)
+        request = self._make_request(f'/store/FidRadDB/download/file/{quoted_filename}', method=HttpBaseClass.GET)
+        message = ""
+
+        if not output_dir:
+            output_dir = '.'
+
+        if not os.path.isabs(output_dir):
+            if not output_dir.startswith("."):
+                output_dir = os.path.join('.', output_dir)
+        else:
+            if os.path.isfile(output_dir):
+                return f"Unable to write file to '{output_dir}' because output_dir is an existing file."
+
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        with urllib.request.urlopen(request) as response:
+            out_file_path = os.path.join(output_dir, file_name)
+            try:
+                with open(out_file_path, 'wb') as f:
+                    shutil.copyfileobj(response, f)
+            except Exception as e:
+                message = f"Exception occurs while trying to write file to '{out_file_path}'. Exception: {repr(e)}"
+            else:
+                message += f'File successfully written to {out_file_path}'
+        return message
 
     def upload_submission(self, path: str, dataset_files: Union[str, Sequence[str]],
                           submission_id: str, doc_files: Optional[Union[str, Sequence[str]]] = None,
@@ -352,7 +407,7 @@ class OCDBApi(Api):
 
     def download_submission_file(self, submission_id: str, index: int, out_fn: Optional[str]) -> str:
         """
-        Download a Submission File by user defined submission ID and teh index of the file
+        Download a Submission File by user defined submission ID and the index of the file
         :param submission_id: The submission ID
         :param index: The index of the file
         :param out_fn: An output file name
