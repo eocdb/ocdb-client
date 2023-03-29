@@ -15,7 +15,8 @@ class Api(metaclass=ABCMeta):
 
     @abstractmethod
     def fidrad_upload(self, cal_char_files: Union[str, Sequence[str]],
-                      doc_files: Optional[Union[str, Sequence[str]]]) -> JsonObj:
+                      doc_files: Optional[Union[str, Sequence[str]]],
+                      allow_publication: bool) -> JsonObj:
         """Upload the given dataset and doc files and return a validation report for each dataset file."""
 
     @abstractmethod

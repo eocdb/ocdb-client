@@ -46,10 +46,12 @@ def _check_args(ctx, param, value):
 # @click.option('--doc-file', '-d', 'doc_files', metavar='<doc-file>', nargs=1,
 #               multiple=True,
 #               help="Labels all subsequent files as documentation files")
+@click.option('--disagree-publication', '-dp', 'disagree_publication', metavar='<disagree-publication>', is_flag=True,
+              help="Specify whether you disagree to publish the data")
 @click.help_option("--help", "-h")
 @click.pass_context
 # def upload_cal_char(ctx, cal_char_files: Sequence[str], doc_files: Sequence[str]):
-def upload_cal_char(ctx, cal_char_files: Sequence[str]):
+def upload_cal_char(ctx, cal_char_files: Sequence[str], disagree_publication: bool):
     """ Upload fidraddb cal/char files.
 
     \b
@@ -60,7 +62,8 @@ def upload_cal_char(ctx, cal_char_files: Sequence[str]):
     api: OCDBApi = ctx.obj
     results = api.fidrad_upload(cal_char_files=cal_char_files,
                                 # doc_files=doc_files)
-                                doc_files=[])
+                                doc_files=[],
+                                allow_publication=not disagree_publication)
     warn_key = "Warning!"
     warn_lines = None
     if warn_key in results:
