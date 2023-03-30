@@ -47,7 +47,7 @@ def _check_args(ctx, param, value):
 #               multiple=True,
 #               help="Labels all subsequent files as documentation files")
 @click.option('--disagree-publication', '-dp', 'disagree_publication', metavar='<disagree-publication>', is_flag=True,
-              help="Specify whether you disagree to publish the data")
+              help="Specify that you disagree to publish the data")
 @click.help_option("--help", "-h")
 @click.pass_context
 # def upload_cal_char(ctx, cal_char_files: Sequence[str], doc_files: Sequence[str]):
@@ -205,7 +205,7 @@ def fidrad_download_file(ctx, file_name: str, output_dir: str):
 @click.option('--publication-date', '-pd', 'publication_date', metavar='<publication-date>', nargs=1,
               help="set date for publication")
 @click.option('--allow-publication', '-ap', 'allow_publication', metavar='<allow-publication>', is_flag=True,
-              help="Specify whether you agree to publish the data")
+              help="Specify that you agree to publish the data")
 @click.help_option("--help", "-h")
 @click.pass_context
 def upload_submission(ctx, path: str, dataset_files: Sequence[str], doc_files: Sequence[str],
