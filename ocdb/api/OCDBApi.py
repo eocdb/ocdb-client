@@ -71,25 +71,20 @@ class OCDBApi(Api):
     # Remote dataset access
 
     def fidrad_upload(self, cal_char_files: Union[str, Sequence[str]],
-                      doc_files: Optional[Union[str, Sequence[str]]],
-                      allow_publication: bool) -> JsonObj:
+                      disagree_publication: bool) -> JsonObj:
         """
         Generate a submission by uploading Cal/Char files to the data store.
         :param cal_char_files: A list of calibration or characterisation files
-        :param doc_files: A list of document file names
-        :param allow_publication: True or False
+        :param disagree_publication: True or False
         :return: A message from the server
         """
         cal_char_files = _ensure_sequence(cal_char_files)
-        doc_files = _ensure_sequence(doc_files)
 
         form = MultiPartForm()
-        form.add_field('allow_publication', str(allow_publication))
+        form.add_field('disagree_publication', str(disagree_publication))
 
         for cal_char_file in cal_char_files:
             form.add_file(f'cal_char_files', os.path.basename(cal_char_file), cal_char_file, mime_type="text/plain")
-        for doc_file in doc_files:
-            form.add_file(f'docfiles', os.path.basename(doc_file), doc_file)
 
         data = bytes(form)
 

@@ -15,9 +15,8 @@ class Api(metaclass=ABCMeta):
 
     @abstractmethod
     def fidrad_upload(self, cal_char_files: Union[str, Sequence[str]],
-                      doc_files: Optional[Union[str, Sequence[str]]],
-                      allow_publication: bool) -> JsonObj:
-        """Upload the given dataset and doc files and return a validation report for each dataset file."""
+                      disagree_publication: bool) -> JsonObj:
+        """Upload the given Cal/Char files and return a validation report for each file."""
 
     @abstractmethod
     def fidrad_history_tail(self, num_lines: int) -> JsonObj:

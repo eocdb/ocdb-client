@@ -61,9 +61,7 @@ def upload_cal_char(ctx, cal_char_files: Sequence[str], disagree_publication: bo
     """
     api: OCDBApi = ctx.obj
     results = api.fidrad_upload(cal_char_files=cal_char_files,
-                                # doc_files=doc_files)
-                                doc_files=[],
-                                allow_publication=not disagree_publication)
+                                disagree_publication=disagree_publication)
     warn_key = "Warning!"
     warn_lines = None
     if warn_key in results:
