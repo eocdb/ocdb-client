@@ -10,7 +10,6 @@ import zipfile
 from typing import Any, Optional, Sequence, List, Union
 
 import pandas as pd
-from httpretty.http import HttpBaseClass
 
 from . import utils
 from .api import Api, Config, JsonObj
@@ -100,7 +99,7 @@ class OCDBApi(Api):
         :param num_lines: The number of lines
         :return: A JSON object representing the history tail
         """
-        request = self._make_request(f'/store/FidRadDB/history/tail/{num_lines}', method=HttpBaseClass.GET)
+        request = self._make_request(f'/store/FidRadDB/history/tail/{num_lines}', method="GET")
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
@@ -112,7 +111,7 @@ class OCDBApi(Api):
         :param max_num_lines: The maximum number of search results.
         """
         quoted_search = urllib.parse.quote(search_string)
-        request = self._make_request(f'/store/FidRadDB/history/search/{quoted_search}/{max_num_lines}', method=HttpBaseClass.GET)
+        request = self._make_request(f'/store/FidRadDB/history/search/{quoted_search}/{max_num_lines}', method="GET")
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
@@ -122,7 +121,7 @@ class OCDBApi(Api):
         returned.
         """
         quoted_name_part = urllib.parse.quote(name_part)
-        request = self._make_request(f'/store/FidRadDB/list/files/{quoted_name_part}', method=HttpBaseClass.GET)
+        request = self._make_request(f'/store/FidRadDB/list/files/{quoted_name_part}', method="GET")
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
@@ -131,7 +130,7 @@ class OCDBApi(Api):
         Deletes the requested file.
         """
         quoted_filename = urllib.parse.quote(file_name)
-        request = self._make_request(f'/store/FidRadDB/delete/file/{quoted_filename}', method=HttpBaseClass.DELETE)
+        request = self._make_request(f'/store/FidRadDB/delete/file/{quoted_filename}', method="DELETE")
         with urllib.request.urlopen(request) as response:
             return json.load(response)
 
@@ -143,7 +142,7 @@ class OCDBApi(Api):
           :return: A message
           """
         quoted_filename = urllib.parse.quote(file_name)
-        request = self._make_request(f'/store/FidRadDB/download/file/{quoted_filename}', method=HttpBaseClass.GET)
+        request = self._make_request(f'/store/FidRadDB/download/file/{quoted_filename}', method="GET")
         message = ""
 
         if not output_dir:
