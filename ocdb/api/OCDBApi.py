@@ -105,8 +105,8 @@ class OCDBApi(Api):
 
     def fidrad_history_search(self, search_string: str, max_num_lines: int) -> JsonObj:
         """
-        Returns a grep-like but bottom-up search result from the FidRadDB history file with a user-defined maximum
-        number of result lines.
+        Returns a grep-like but bottom-up search result from the FidRadDB history
+        file with a user-defined maximum number of result lines.
         :param search_string: The string to be searched for in the history.
         :param max_num_lines: The maximum number of search results.
         """
