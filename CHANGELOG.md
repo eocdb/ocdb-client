@@ -1,3 +1,34 @@
+## CHANGES in v0.2.12
+
+- FidRadDB interface added
+  - possibility to upload Cal/Char files
+    - only allowed for logged in users with the role "fidrad" or admins  
+    - with optional "-dp" switch. Which means "disagree publication".
+  - fetch history tail from server
+    - only allowed for logged in users with the role "fidrad" or admins  
+    - fetches n last lines from fidraddb history log  
+    - with optional user-definable num lines
+    - default: last 50 lines
+  - grep like bottom up history search implemented
+    - only allowed for logged in users with the role "fidrad" or admins
+    - with mandatory user definable string to search for
+    - with optional user-definable maximum number of results
+    - default: 20 results
+  - list fidraddb files located on the server
+    - allowed for everyone
+      - Guest users only see public files in the list
+      - Logged in users will see all public and own private files
+      - Logged in admin will see all files in the list
+  - download fidraddb files from server
+    - allowed for everyone
+      - Guest users can only download public files
+      - Logged in users can download public and own files
+      - Logged in admin can download any files
+  - delete fidraddb files from server
+    - only allowed for logged in users or admins  
+      - Logged in users can delete own files
+      - Logged in administrators can delete any files
+
 ## CHANGES in v0.2.11
 
 - Add information, that a role or roles on an user can only be changed by administrator.

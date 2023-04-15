@@ -43,17 +43,14 @@ def _check_args(ctx, param, value):
 
 @click.command('upload')
 @click.argument('cal-char-files', metavar='<cal-char-file> ...', required=True, nargs=-1, callback=_check_args)
-# @click.option('--doc-file', '-d', 'doc_files', metavar='<doc-file>', nargs=1,
-#               multiple=True,
-#               help="Labels all subsequent files as documentation files")
 @click.option('--disagree-publication', '-dp', 'disagree_publication', metavar='<disagree-publication>', is_flag=True,
               help="Specify that you disagree to publish the data")
 @click.help_option("--help", "-h")
 @click.pass_context
-# def upload_cal_char(ctx, cal_char_files: Sequence[str], doc_files: Sequence[str]):
-def upload_cal_char(ctx, cal_char_files: Sequence[str], disagree_publication: bool):
-    """ Upload fidraddb cal/char files.
-
+def fidrad_upload_cal_char(ctx, cal_char_files: Sequence[str], disagree_publication: bool):
+    """ \b
+    Upload fidraddb cal/char files.
+    You need to be a logged-in user with assigned role "fidrad" or an admin.
     \b
     Please choose max 15 FidRadDB cal/char files.
     The filenames must follow the syntax:
@@ -79,8 +76,12 @@ def upload_cal_char(ctx, cal_char_files: Sequence[str], disagree_publication: bo
 @click.argument('num-lines', default='50')
 @click.help_option("--help", "-h")
 @click.pass_context
-def get_fidrad_history_tail(ctx, num_lines: str):
-    """Get history tail from FidRadDb <num_lines> (default 50 lines)."""
+def fidrad_history_tail(ctx, num_lines: str):
+    """ \b
+    Get history tail from FidRadDb history file.
+    optional: [NUM_LINES] (default 50 lines).
+    You need to be a logged-in user with assigned role "fidrad" or an admin.
+    """
     api: OCDBApi = ctx.obj
     result = api.fidrad_history_tail(num_lines)
     if type(result) is list:
@@ -106,9 +107,13 @@ def get_fidrad_history_tail(ctx, num_lines: str):
 def fidrad_history_search(ctx, search_string: str, max_num_lines):
     """
     Returns a grep-like but bottom-up search result from the FidRadDB history file with a user-defined maximum
-    number of result lines.
-    :param search_string: The string to be searched for in the history.
-    :param max_num_lines: The maximum number of search results.
+    number of result lines. You need to be a logged-in user with assigned role "fidrad" or an admin.
+
+    \b
+    :param search_string: (mandatory)
+           The string to be searched for in the history.
+    :param max_num_lines: (optional) (default:20)
+           The maximum number of search results.
     """
     api: OCDBApi = ctx.obj
     result = api.fidrad_history_search(search_string, max_num_lines)
@@ -136,6 +141,9 @@ def fidrad_list_files(ctx, name_part: str):
     \b
     Lists the files available on the server.
     If a name-part is specified, only files containing this part are returned.
+      -> A guest user only gets public files listed.
+      -> A logged-in user gets public and own files listed.
+      -> An admin gets any files listed.
 
     :param name_part: The name-part to search for.
     """
@@ -163,8 +171,12 @@ def fidrad_list_files(ctx, name_part: str):
 @click.help_option("--help", "-h")
 @click.pass_context
 def fidrad_delete_file(ctx, file_name: str):
-    """
+    """ \b
     Will delete the file with the user defined name on the server.
+    You need to be a logged-in user or an admin.
+      -> A logged-in user can only delete own files.
+      -> An admin can delete any files.
+
     :param file_name: The name of the file to be deleted
     """
     api: OCDBApi = ctx.obj
@@ -181,8 +193,11 @@ def fidrad_delete_file(ctx, file_name: str):
 @click.help_option("--help", "-h")
 @click.pass_context
 def fidrad_download_file(ctx, file_name: str, output_dir: str):
-    """
+    """ \b
     Will download the file with the user defined name from the server.
+      -> A guest user can download public files only.
+      -> A logged-in user can download public and own files.
+      -> An admin can download any files.
 
     :param file_name: The name of the file to be downloaded.
     """
@@ -663,8 +678,8 @@ ds.add_command(list_datasets)
 ds.add_command(get_datasets_by_submission)
 ds.add_command(delete_datasets_by_submission)
 
-fidRadDB.add_command(upload_cal_char)
-fidRadDB.add_command(get_fidrad_history_tail)
+fidRadDB.add_command(fidrad_upload_cal_char)
+fidRadDB.add_command(fidrad_history_tail)
 fidRadDB.add_command(fidrad_history_search)
 fidRadDB.add_command(fidrad_list_files)
 fidRadDB.add_command(fidrad_delete_file)
