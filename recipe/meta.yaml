@@ -28,6 +28,7 @@ requirements:
     - click
     - pyyaml
     - pandas
+    - httpretty
 test:
   # Python imports
   imports:
